@@ -40,7 +40,6 @@ import {
   useVelocity,
 } from 'motion/react';
 import {toast} from 'sonner';
-import {Button} from './components/ui/button';
 import {Toaster} from './components/ui/sonner';
 import {AccessModeGate, type EntranceStage} from './components/AccessModeGate';
 import {AmbientLiquidBackground} from './components/AmbientLiquidBackground';
@@ -48,6 +47,7 @@ import {ColorGradingCompare} from './components/ColorGradingCompare';
 import {DevMediaSlotBadge} from './components/DevMediaSlotBadge';
 import {EditorialCursor} from './components/EditorialCursor';
 import {FilmImage} from './components/FilmImage';
+import {GeminiFloatingChat} from './components/GeminiFloatingChat';
 import {HeroAmbientAccents} from './components/HeroAmbientAccents';
 import {HorizontalScrollFade} from './components/HorizontalScrollFade';
 import {MagneticButton} from './components/MagneticButton';
@@ -93,6 +93,7 @@ import {
   GSAP_MEDIA,
   gsap,
   scheduleScrollTriggerRefresh,
+  ScrollTrigger,
   syncLenisWithGsap,
 } from './lib/gsapCoordinator';
 
@@ -101,6 +102,21 @@ type SectionId = 'top' | 'works' | 'color-grade' | 'timeline' | 'capabilities' |
 const CATEGORIES: FilmCategory[] = ['All', 'Commercial', 'Music Video', 'Documentary', 'Color & Edit'];
 
 const CAPABILITY_ICONS = [Camera, Scissors, SlidersHorizontal];
+
+const SPEC_CARD_COLORS = [
+  'bg-white',
+  'bg-[#FEF9C3]',
+  'bg-[#F3E8FF]',
+  'bg-[#FCE7F3]',
+];
+
+const WORK_CARD_COLORS = [
+  'bg-white',
+  'bg-[#FEF9C3]',
+  'bg-[#F3E8FF]',
+  'bg-[#FCE7F3]',
+  'bg-[#ECFCCB]',
+];
 
 interface AppErrorBoundaryState {
   hasError: boolean;
@@ -125,20 +141,20 @@ class AppErrorBoundary extends Component<{children: ReactNode}, AppErrorBoundary
     if (this.state.hasError) {
       return (
         <div className="min-h-screen bg-[#FFFDF5] bg-brutal-grid text-[#09090B] flex items-center justify-center p-6">
-          <div className="brutal-card-elevated max-w-md w-full rounded-3xl p-6 sm:p-8 space-y-4 text-center">
-            <span className="inline-flex items-center px-3 py-1 rounded-lg bg-[#FFE600] border-2 border-[#09090B] text-xs font-mono font-bold text-[#09090B]">
+          <div className="brutal-card-elevated max-w-md w-full rounded-3xl bg-white p-6 sm:p-8 space-y-4 text-center">
+            <span className="inline-block px-3 py-1 rounded-full bg-[#FFE600] border-2 border-[#09090B] text-xs font-mono font-bold uppercase tracking-widest text-[#09090B]">
               dms porto
             </span>
             <h1 className="text-xl font-display font-extrabold tracking-tight text-[#09090B]">
               Tampilan perlu dimuat ulang
             </h1>
-            <p className="text-sm font-sans text-[#27272A] leading-relaxed">
+            <p className="text-sm font-sans text-[#3F3F46] leading-relaxed">
               {this.state.message}
             </p>
             <button
               type="button"
               onClick={() => window.location.reload()}
-              className="brutal-cta inline-flex items-center justify-center h-11 px-6 rounded-xl text-sm font-mono font-bold cursor-pointer"
+              className="brutal-cta inline-flex items-center justify-center h-11 rounded-xl px-6 text-sm font-mono font-bold cursor-pointer"
             >
               Muat Ulang Halaman
             </button>
@@ -208,6 +224,7 @@ function PortfolioApp() {
   const heroSectionRef = useRef<HTMLElement | null>(null);
   const portfolioRootRef = useRef<HTMLDivElement | null>(null);
   const didCheckDeepLinkRef = useRef(false);
+  const pendingSectionScrollRef = useRef<SectionId | null>(null);
   const entranceTimersRef = useRef<number[]>([]);
   const [isDesktopMotion, setIsDesktopMotion] = useState(false);
   const [entranceStage, setEntranceStage] = useState<EntranceStage>('backdrop');
@@ -219,12 +236,6 @@ function PortfolioApp() {
     entranceTimersRef.current = [];
   }, []);
 
-  // Unified Phase 1 & Phase 2 storyboard entrance orchestrator:
-  // 0.00s ('backdrop')    : Scene 1 light background fade-in (0.5s)
-  // 0.50s ('logo')        : Scene 2 dead-center "dms porto" slide-up & fade-in (0.4s)
-  // 0.95s ('container')   : Scene 3 background warmth transition, logo glide up, white container overshoot
-  // 1.35s ('cards')       : Scene 4 staggered Just Guest -> Dev Mode (+0.15s) + micro-delays
-  // 1.85s ('interactive') : Phase 2 idle / hover & focus states settled
   useEffect(() => {
     clearEntranceTimers();
 
@@ -304,8 +315,6 @@ function PortfolioApp() {
     offset: ['start start', 'end start'],
   });
 
-  const headerFadeOpacity = useTransform(scrollY, [0, 36], [0, 1]);
-
   useEffect(() => {
     const mq = window.matchMedia('(min-width: 768px) and (pointer: fine)');
     const syncDesktopMotion = () => setIsDesktopMotion(mq.matches);
@@ -377,7 +386,6 @@ function PortfolioApp() {
             return;
           }
 
-          // 1. Hero Staggered Entrance (runs as soon as AccessModeGate reveals portfolio)
           const heroTl = gsap.timeline({defaults: {ease: 'power3.out'}});
           heroTl
             .fromTo(
@@ -450,7 +458,6 @@ function PortfolioApp() {
               '-=0.32',
             );
 
-          // 2. Desktop Showreel scrubbed parallax (registered first in top-to-bottom DOM order)
           if (conditions.isDesktopFine) {
             const heroEl = heroSectionRef.current;
             const showreelMedia = root.querySelector('[data-gsap="hero-showreel-media"]');
@@ -468,7 +475,7 @@ function PortfolioApp() {
                   showreelMedia,
                   {scale: 1, y: 0},
                   {
-                    scale: 1.055,
+                    scale: 1.05,
                     y: -14,
                     ease: 'none',
                   },
@@ -476,59 +483,51 @@ function PortfolioApp() {
             }
           }
 
-          // 3. Section 01: Selected Works staggered grid entrance
-          const worksSection = root.querySelector('#works');
-          if (worksSection) {
-            gsap
-              .timeline({
-                scrollTrigger: {
-                  trigger: worksSection,
-                  start: 'top 84%',
-                  toggleActions: 'play none none none',
+          const bindSafeReveal = (
+            triggerEl: Element | null,
+            buildTimeline: (tl: gsap.core.Timeline) => void,
+            start = 'top 90%',
+          ) => {
+            if (!triggerEl) return;
+            const tl = gsap.timeline({
+              scrollTrigger: {
+                trigger: triggerEl,
+                start,
+                fastScrollEnd: true,
+                toggleActions: 'play none none none',
+                onRefresh: (self) => {
+                  const rect = triggerEl.getBoundingClientRect();
+                  if (self.progress > 0 || rect.top <= window.innerHeight * 0.94) {
+                    tl.progress(1);
+                  }
                 },
-              })
-              .from('[data-gsap="works-head"]', {
-                opacity: 0,
-                y: 18,
-                duration: MOTION_DURATIONS.choreo,
-                stagger: 0.07,
-                ease: 'power3.out',
-                clearProps: 'transform,opacity',
-              })
-              .from(
-                '[data-gsap="work-card"]',
-                {
-                  opacity: 0,
-                  y: 22,
-                  scale: 0.98,
-                  duration: MOTION_DURATIONS.choreo,
-                  stagger: 0.06,
-                  ease: 'power3.out',
-                  clearProps: 'transform,opacity',
-                },
-                '-=0.32',
-              );
-          }
+              },
+            });
+            buildTimeline(tl);
+          };
 
-          // 4. Section 02: Color Grading Compare staggered reveal
+          const worksSection = root.querySelector('#works');
+          bindSafeReveal(worksSection, (tl) => {
+            tl.from('[data-gsap="works-head"]', {
+              opacity: 0,
+              y: 18,
+              duration: MOTION_DURATIONS.choreo,
+              stagger: 0.07,
+              ease: 'power3.out',
+              clearProps: 'transform,opacity',
+            });
+          });
+
           const cgSection = root.querySelector('#color-grade');
-          if (cgSection) {
-            gsap
-              .timeline({
-                scrollTrigger: {
-                  trigger: cgSection,
-                  start: 'top 84%',
-                  toggleActions: 'play none none none',
-                },
-              })
-              .from('[data-gsap="cg-head"]', {
-                opacity: 0,
-                y: 18,
-                duration: MOTION_DURATIONS.choreo,
-                stagger: 0.07,
-                ease: 'power3.out',
-                clearProps: 'transform,opacity',
-              })
+          bindSafeReveal(cgSection, (tl) => {
+            tl.from('[data-gsap="cg-head"]', {
+              opacity: 0,
+              y: 18,
+              duration: MOTION_DURATIONS.choreo,
+              stagger: 0.07,
+              ease: 'power3.out',
+              clearProps: 'transform,opacity',
+            })
               .from(
                 '[data-gsap="cg-stage"]',
                 {
@@ -553,27 +552,18 @@ function PortfolioApp() {
                 },
                 '-=0.30',
               );
-          }
+          });
 
-          // 5. Section 03: Cut Architecture NLE Timeline reveal
           const tlSection = root.querySelector('#timeline');
-          if (tlSection) {
-            gsap
-              .timeline({
-                scrollTrigger: {
-                  trigger: tlSection,
-                  start: 'top 84%',
-                  toggleActions: 'play none none none',
-                },
-              })
-              .from('[data-gsap="tl-head"]', {
-                opacity: 0,
-                y: 18,
-                duration: MOTION_DURATIONS.choreo,
-                stagger: 0.07,
-                ease: 'power3.out',
-                clearProps: 'transform,opacity',
-              })
+          bindSafeReveal(tlSection, (tl) => {
+            tl.from('[data-gsap="tl-head"]', {
+              opacity: 0,
+              y: 18,
+              duration: MOTION_DURATIONS.choreo,
+              stagger: 0.07,
+              ease: 'power3.out',
+              clearProps: 'transform,opacity',
+            })
               .from(
                 '[data-gsap="tl-inspector"]',
                 {
@@ -608,26 +598,17 @@ function PortfolioApp() {
                 },
                 '-=0.30',
               );
-          }
+          });
 
-          // 6. Section 04: Capabilities staggered ledger rows
           const capSection = root.querySelector('#capabilities');
-          if (capSection) {
-            gsap
-              .timeline({
-                scrollTrigger: {
-                  trigger: capSection,
-                  start: 'top 84%',
-                  toggleActions: 'play none none none',
-                },
-              })
-              .from('[data-gsap="cap-head"]', {
-                opacity: 0,
-                y: 16,
-                duration: MOTION_DURATIONS.choreo,
-                ease: 'power3.out',
-                clearProps: 'transform,opacity',
-              })
+          bindSafeReveal(capSection, (tl) => {
+            tl.from('[data-gsap="cap-head"]', {
+              opacity: 0,
+              y: 16,
+              duration: MOTION_DURATIONS.choreo,
+              ease: 'power3.out',
+              clearProps: 'transform,opacity',
+            })
               .from(
                 '[data-gsap="cap-sticky"]',
                 {
@@ -651,20 +632,13 @@ function PortfolioApp() {
                 },
                 '-=0.34',
               );
-          }
+          });
 
-          // 7. Contact & Brief section staggered arrival
           const contactSection = root.querySelector('#contact');
-          if (contactSection) {
-            gsap
-              .timeline({
-                scrollTrigger: {
-                  trigger: contactSection,
-                  start: 'top 86%',
-                  toggleActions: 'play none none none',
-                },
-              })
-              .from('[data-gsap="contact-item"]', {
+          bindSafeReveal(
+            contactSection,
+            (tl) => {
+              tl.from('[data-gsap="contact-item"]', {
                 opacity: 0,
                 y: 18,
                 duration: MOTION_DURATIONS.choreo,
@@ -672,7 +646,9 @@ function PortfolioApp() {
                 ease: 'power3.out',
                 clearProps: 'transform,opacity',
               });
-          }
+            },
+            'top 92%',
+          );
         },
       );
 
@@ -686,14 +662,12 @@ function PortfolioApp() {
     };
   }, [activeTab, heroRevealed]);
 
-  // Recalibrate ScrollTrigger positions whenever category filtering alters document height
   useEffect(() => {
     if (activeTab !== 'portfolio' || !heroRevealed) return;
     const rafId = scheduleScrollTriggerRefresh();
     return () => window.cancelAnimationFrame(rafId);
   }, [selectedCategory, activeTab, heroRevealed]);
 
-  // Keep canonical & og:url tags synchronized with runtime origin/pathname
   useEffect(() => {
     const canonicalUrl = `${window.location.origin}${window.location.pathname}`;
     const canonicalLink = document.querySelector('link[rel="canonical"]');
@@ -706,7 +680,6 @@ function PortfolioApp() {
     }
   }, []);
 
-  // Pause Lenis smooth wheel capture whenever a modal or entry gate is open
   useEffect(() => {
     const lenis = lenisRef.current;
     if (!lenis) return;
@@ -722,7 +695,6 @@ function PortfolioApp() {
     }
   }, [accessRole, activeFilmId, drawerOpen, mobileSheetOpen]);
 
-  // Read ?work= / ?tab=the-agent on initial mount and keep URL synchronized
   useEffect(() => {
     if (!didCheckDeepLinkRef.current) {
       didCheckDeepLinkRef.current = true;
@@ -786,28 +758,49 @@ function PortfolioApp() {
     return resolvedFilms.filter((film) => film.category === selectedCategory);
   }, [selectedCategory, resolvedFilms]);
 
-  const scrollToSection = (sectionId: SectionId) => {
-    const performScroll = () => {
-      const el = document.getElementById(sectionId);
-      if (!el) return;
-      setActiveSection(sectionId);
-      const isDesktop = window.innerWidth >= 768;
-      const offset = isDesktop ? -72 : -12;
+  const performSectionScroll = useCallback((sectionId: SectionId) => {
+    const el = document.getElementById(sectionId);
+    if (!el) return;
+    setActiveSection(sectionId);
+    const isDesktop = window.innerWidth >= 768;
+    const offset = isDesktop ? -84 : -76;
 
-      if (lenisRef.current) {
-        lenisRef.current.scrollTo(el, {offset});
-      } else {
-        el.scrollIntoView({behavior: 'smooth', block: 'start'});
-      }
+    if (lenisRef.current) {
+      lenisRef.current.resize();
+      ScrollTrigger.refresh();
+      lenisRef.current.scrollTo(el, {offset});
+    } else {
+      const targetTop = Math.max(0, el.getBoundingClientRect().top + window.scrollY + offset);
+      window.scrollTo({top: targetTop, behavior: 'smooth'});
+    }
+  }, []);
+
+  useEffect(() => {
+    if (activeTab !== 'portfolio' || !pendingSectionScrollRef.current) return;
+    const targetId = pendingSectionScrollRef.current;
+    pendingSectionScrollRef.current = null;
+
+    let raf2 = 0;
+    const raf1 = window.requestAnimationFrame(() => {
+      raf2 = window.requestAnimationFrame(() => {
+        performSectionScroll(targetId);
+      });
+    });
+
+    return () => {
+      window.cancelAnimationFrame(raf1);
+      if (raf2) window.cancelAnimationFrame(raf2);
     };
+  }, [activeTab, performSectionScroll]);
 
+  const scrollToSection = (sectionId: SectionId) => {
     if (activeTab !== 'portfolio') {
+      pendingSectionScrollRef.current = sectionId;
       setActiveTab('portfolio');
-      window.setTimeout(performScroll, 60);
       return;
     }
 
-    performScroll();
+    performSectionScroll(sectionId);
   };
 
   const openTheAgentTab = () => {
@@ -832,6 +825,18 @@ function PortfolioApp() {
     }
   };
 
+  const handleOpenBriefTrigger = () => {
+    if (window.innerWidth < 768) {
+      setMobileSheetOpen(true);
+    } else {
+      setSubmittedBrief(null);
+      scrollToSection('contact');
+      window.setTimeout(() => {
+        document.getElementById('inquiry-name')?.focus({preventScroll: true});
+      }, 420);
+    }
+  };
+
   const handleSelectCapabilityScope = (capIndex: string) => {
     const scopeMap: Record<string, (typeof PROJECT_SCOPES)[number]> = {
       '01': 'Commercial / Brand Film',
@@ -841,14 +846,7 @@ function PortfolioApp() {
     const nextScope = scopeMap[capIndex] ?? PROJECT_SCOPES[0];
     setFormScope(nextScope);
     setSubmittedBrief(null);
-    if (window.innerWidth < 768) {
-      setMobileSheetOpen(true);
-    } else {
-      scrollToSection('contact');
-      window.setTimeout(() => {
-        document.getElementById('inquiry-name')?.focus();
-      }, 420);
-    }
+    handleOpenBriefTrigger();
   };
 
   const handleSubmitInquiry = async (e: FormEvent): Promise<boolean> => {
@@ -963,7 +961,7 @@ function PortfolioApp() {
   return (
     <MotionConfig reducedMotion="user">
       <div
-        className={`relative min-h-screen flex flex-col bg-[#FFFDF5] text-[#09090B] ${
+        className={`relative min-h-screen overflow-x-clip flex flex-col bg-[#FFFDF5] text-[#09090B] ${
           activeTab === 'portfolio'
             ? 'pb-[calc(5.25rem+env(safe-area-inset-bottom))] md:pb-0'
             : 'pb-0'
@@ -972,7 +970,7 @@ function PortfolioApp() {
         <AmbientLiquidBackground />
         <a
           href="#main-content"
-          className="brutal-cta sr-only focus:not-sr-only focus:fixed focus:top-3 focus:left-3 focus:z-[120] focus:px-4 focus:py-2.5 focus:rounded-xl focus:text-xs focus:font-mono focus:font-bold"
+          className="brutal-cta sr-only focus:not-sr-only focus:fixed focus:top-3 focus:left-3 focus:z-[120] focus:rounded-xl focus:px-4 focus:py-2.5 focus:text-xs focus:font-mono focus:font-bold"
         >
           Skip to main content
         </a>
@@ -983,7 +981,7 @@ function PortfolioApp() {
           onReplayEntrance={replayEntrance}
         />
         <OfflineBanner />
-        {/* Subtle Tactile Print-Grain Overlay (desktop only) */}
+        {/* Subtle Optical Grain Overlay (desktop only) */}
         <div
           aria-hidden="true"
           className="hidden md:block film-grain-overlay pointer-events-none fixed inset-0 z-50 opacity-[0.025]"
@@ -997,13 +995,13 @@ function PortfolioApp() {
           transition={{duration: MOTION_DURATIONS.choreo, delay: 0.04, ease: CUBIC_EASE}}
           className="sticky top-3 z-30 px-3 sm:px-6 pt-[env(safe-area-inset-top)] pointer-events-none"
         >
-          <div className="pointer-events-auto relative max-w-6xl mx-auto px-4 sm:px-6 h-14 md:h-16 rounded-2xl bg-[#FFFDF5] border-[2.5px] border-[#09090B] shadow-[5px_5px_0_#09090B] overflow-hidden flex items-center justify-between gap-4">
-            <div className="flex items-center gap-2 sm:gap-2.5 min-w-0">
+          <div className="pointer-events-auto relative max-w-6xl mx-auto px-3 sm:px-5 h-14 md:h-16 rounded-2xl bg-[#FFFDF5] border-[2.5px] border-[#09090B] shadow-[5px_5px_0_#09090B] overflow-hidden flex items-center justify-between gap-2 sm:gap-4">
+            <div className="flex items-center gap-2 sm:gap-3 min-w-0">
               <button
                 type="button"
                 onClick={() => scrollToSection('top')}
                 aria-label="Back to top"
-                className="inline-flex items-center shrink-0 min-h-[44px] px-1 -ml-1 rounded-lg select-none cursor-pointer focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#7C3AED]"
+                className="inline-flex items-center shrink-0 min-h-[44px] px-1 -ml-1 rounded-xl select-none cursor-pointer focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#7C3AED]"
               >
                 <img
                   src={dmsPortoLogo}
@@ -1011,7 +1009,7 @@ function PortfolioApp() {
                   width={471}
                   height={253}
                   draggable={false}
-                  className="h-7 md:h-8 w-auto object-contain"
+                  className="h-5 sm:h-6 md:h-7 w-auto object-contain"
                 />
               </button>
 
@@ -1021,19 +1019,17 @@ function PortfolioApp() {
                   onClick={toggleDevMode}
                   aria-pressed={devMode}
                   title="Open Dev Mode Media Studio (Ctrl+Shift+D)"
-                  className={`hidden sm:inline-flex items-center gap-1.5 h-9 px-3 rounded-xl text-xs font-mono font-bold cursor-pointer shrink-0 whitespace-nowrap focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#7C3AED] ${
-                    devMode
-                      ? 'brutal-cta-purple'
-                      : 'brutal-button'
+                  className={`hidden sm:inline-flex items-center gap-1.5 h-8 rounded-xl px-3.5 text-xs font-mono font-bold cursor-pointer shrink-0 whitespace-nowrap ${
+                    devMode ? 'brutal-cta' : 'brutal-button bg-white'
                   }`}
                 >
-                  <Code2 className="w-3.5 h-3.5" />
+                  <Code2 className="w-3.5 h-3.5" strokeWidth={2} />
                   <span>Dev Mode</span>
                 </button>
               )}
             </div>
 
-            {/* Desktop Navigation (single-line high-contrast chunky blocks) */}
+            {/* Desktop Single-Line Navigation */}
             <nav
               aria-label="Primary navigation"
               className="hidden md:flex items-center gap-1.5 text-xs font-mono font-bold text-[#09090B]"
@@ -1053,10 +1049,10 @@ function PortfolioApp() {
                     key={item.id}
                     type="button"
                     onClick={() => scrollToSection(item.id)}
-                    className={`px-3 py-1.5 rounded-lg transition-all whitespace-nowrap shrink-0 cursor-pointer focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#7C3AED] ${
+                    className={`px-3 py-1.5 rounded-xl border-2 transition-colors whitespace-nowrap shrink-0 cursor-pointer focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#7C3AED] ${
                       isActive
-                        ? 'bg-[#FFE600] text-[#09090B] border-2 border-[#09090B] shadow-[2px_2px_0_#09090B]'
-                        : 'border-2 border-transparent hover:bg-[#FEF9C3] hover:border-[#09090B]'
+                        ? 'bg-[#FFE600] border-[#09090B] shadow-[2px_2px_0_#09090B] text-[#09090B]'
+                        : 'border-transparent hover:bg-[#FEF9C3] hover:border-[#09090B]'
                     }`}
                   >
                     {item.label}
@@ -1067,13 +1063,13 @@ function PortfolioApp() {
               <button
                 type="button"
                 onClick={openTheAgentTab}
-                className={`px-3 py-1.5 rounded-lg transition-all whitespace-nowrap shrink-0 cursor-pointer focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#7C3AED] ${
+                className={`ml-1.5 inline-flex items-center gap-1.5 h-9 rounded-xl px-4 text-xs font-mono font-bold whitespace-nowrap shrink-0 cursor-pointer ${
                   activeTab === 'the-agent'
-                    ? 'bg-[#FF4D8D] text-[#09090B] border-2 border-[#09090B] shadow-[2px_2px_0_#09090B]'
-                    : 'bg-[#7C3AED] text-white border-2 border-[#09090B] shadow-[2px_2px_0_#09090B] hover:bg-[#6D28D9]'
+                    ? 'brutal-cta-pink'
+                    : 'brutal-cta-purple'
                 }`}
               >
-                The Agent
+                <span>The Agent</span>
               </button>
             </nav>
 
@@ -1086,10 +1082,8 @@ function PortfolioApp() {
                 onClick={() =>
                   activeTab === 'the-agent' ? scrollToSection('top') : openTheAgentTab()
                 }
-                className={`inline-flex items-center h-11 px-3 rounded-xl text-xs font-mono font-bold whitespace-nowrap shrink-0 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#7C3AED] ${
-                  activeTab === 'the-agent'
-                    ? 'brutal-cta-pink'
-                    : 'brutal-button'
+                className={`inline-flex items-center h-10 sm:h-11 rounded-xl px-2.5 sm:px-3.5 text-[11px] sm:text-xs font-mono font-bold whitespace-nowrap shrink-0 ${
+                  activeTab === 'the-agent' ? 'brutal-cta-pink' : 'brutal-cta-purple'
                 }`}
               >
                 <span>{activeTab === 'the-agent' ? 'Works' : 'Agent'}</span>
@@ -1101,13 +1095,11 @@ function PortfolioApp() {
                   transition={CUBIC_TACTILE}
                   onClick={toggleDevMode}
                   aria-pressed={devMode}
-                  className={`inline-flex items-center gap-1 h-11 px-2.5 rounded-xl text-xs font-mono font-bold whitespace-nowrap shrink-0 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#7C3AED] ${
-                    devMode
-                      ? 'brutal-cta-purple'
-                      : 'brutal-button'
+                  className={`inline-flex items-center gap-1 h-10 sm:h-11 rounded-xl px-2.5 sm:px-3 text-[11px] sm:text-xs font-mono font-bold whitespace-nowrap shrink-0 ${
+                    devMode ? 'brutal-cta' : 'brutal-button bg-white'
                   }`}
                 >
-                  <Code2 className="w-3.5 h-3.5" />
+                  <Code2 className="w-3.5 h-3.5" strokeWidth={2} />
                   <span>Dev</span>
                 </motion.button>
               )}
@@ -1116,9 +1108,9 @@ function PortfolioApp() {
                 whileTap={{scale: 0.95}}
                 transition={CUBIC_TACTILE}
                 onClick={() => setActiveFilmId(resolvedShowreel.id)}
-                className="brutal-cta inline-flex items-center gap-1.5 h-11 px-3 rounded-xl text-xs font-mono font-bold whitespace-nowrap shrink-0 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#7C3AED]"
+                className="brutal-cta inline-flex items-center gap-1 sm:gap-1.5 h-10 sm:h-11 rounded-xl px-2.5 sm:px-3.5 text-[11px] sm:text-xs font-mono font-bold whitespace-nowrap shrink-0"
               >
-                <Play className="w-3 h-3 fill-current" />
+                <Play className="w-3 h-3 fill-current" strokeWidth={2} />
                 <span>Reel</span>
               </motion.button>
             </div>
@@ -1129,11 +1121,6 @@ function PortfolioApp() {
               className="pointer-events-none absolute bottom-0 inset-x-0 h-[3px] origin-left bg-[#7C3AED]"
             />
           </div>
-          <motion.div
-            aria-hidden="true"
-            style={{opacity: headerFadeOpacity}}
-            className="hidden"
-          />
         </motion.header>
 
         {activeTab === 'the-agent' ? (
@@ -1144,7 +1131,7 @@ function PortfolioApp() {
           </main>
         ) : (
           <div ref={portfolioRootRef} className="relative z-10">
-            {/* BAND 1: Collage Maximalism Hero */}
+            {/* BAND 1: Playful Neo-Brutalist Hero + Draggable Studio Stickers */}
             <section
               id="top"
               ref={heroSectionRef}
@@ -1162,10 +1149,8 @@ function PortfolioApp() {
                   className="inline-flex flex-col items-center gap-3"
                 >
                   <div
-                    className={`relative h-20 w-20 sm:h-24 sm:w-24 rounded-full overflow-hidden border-[3px] border-[#09090B] bg-[#09090B] ${
-                      devMode
-                        ? 'shadow-[5px_5px_0_#7C3AED]'
-                        : 'shadow-[5px_5px_0_#FFE600]'
+                    className={`relative h-20 w-20 sm:h-24 sm:w-24 rounded-full overflow-hidden border-[3px] border-[#09090B] bg-[#FFE600] shadow-[5px_5px_0_#09090B] ${
+                      devMode ? 'ring-4 ring-[#7C3AED]' : ''
                     }`}
                   >
                     {resolvedAvatar.kind === 'video' ? (
@@ -1179,7 +1164,7 @@ function PortfolioApp() {
                           transform: `scale(${avatarFrame.scale})`,
                           transformOrigin: `${avatarFrame.posX}% ${avatarFrame.posY}%`,
                         }}
-                        className="w-full h-full object-cover grayscale contrast-110"
+                        className="w-full h-full object-cover contrast-105"
                       />
                     ) : (
                       <img
@@ -1192,7 +1177,7 @@ function PortfolioApp() {
                           transform: `scale(${avatarFrame.scale})`,
                           transformOrigin: `${avatarFrame.posX}% ${avatarFrame.posY}%`,
                         }}
-                        className="w-full h-full object-cover grayscale contrast-110"
+                        className="w-full h-full object-cover contrast-105"
                       />
                     )}
                     <DevMediaSlotBadge
@@ -1202,15 +1187,15 @@ function PortfolioApp() {
                       compact
                     />
                   </div>
-                  <p className="inline-flex items-center px-3.5 py-1 rounded-full bg-white border-2 border-[#09090B] shadow-[3px_3px_0_#09090B] text-xs font-mono font-bold tracking-tight text-[#09090B]">
+                  <p className="inline-flex items-center px-3.5 py-1 rounded-full bg-[#B8FF3B] border-2 border-[#09090B] shadow-[3px_3px_0_#09090B] text-xs font-mono font-bold tracking-tight text-[#09090B]">
                     Dimas · Director of Photography &amp; Editor · Jakarta
                   </p>
                 </div>
 
-                {/* Expressive Maximalist Syne Display Headline */}
+                {/* Oversized Syne Display Headline with Tilted Neo-Brutalist Stamp Words */}
                 <h1
                   aria-label="Shaping quiet rhythm and kinetic clarity in every frame."
-                  className="font-display text-[clamp(2.25rem,5.2vw,4.2rem)] font-extrabold tracking-[-0.03em] leading-[1.06] text-[#09090B] text-balance"
+                  className="font-display text-[clamp(2.2rem,5.2vw,4.3rem)] font-extrabold tracking-[-0.03em] leading-[1.12] text-[#09090B] text-balance"
                 >
                   {[
                     'Shaping',
@@ -1232,9 +1217,9 @@ function PortfolioApp() {
                         aria-hidden="true"
                         className={`inline-block mr-[0.22em] last:mr-0 ${
                           isYellowStamp
-                            ? 'bg-[#FFE600] text-[#09090B] px-2.5 py-0.5 rounded-xl border-[2.5px] border-[#09090B] shadow-[4px_4px_0_#09090B] -rotate-1'
+                            ? '-rotate-2 bg-[#FFE600] text-[#09090B] px-2.5 py-0.5 border-[2.5px] border-[#09090B] shadow-[4px_4px_0_#09090B] rounded-xl my-0.5'
                             : isPurpleStamp
-                              ? 'bg-[#7C3AED] text-white px-2.5 py-0.5 rounded-xl border-[2.5px] border-[#09090B] shadow-[4px_4px_0_#09090B] rotate-1'
+                              ? 'rotate-2 bg-[#7C3AED] text-white px-2.5 py-0.5 border-[2.5px] border-[#09090B] shadow-[4px_4px_0_#09090B] rounded-xl my-0.5'
                               : ''
                         }`}
                       >
@@ -1246,48 +1231,50 @@ function PortfolioApp() {
 
                 <p
                   data-gsap="hero-sub"
-                  className="text-sm sm:text-base font-sans font-medium text-[#27272A] leading-[1.65] max-w-xl mx-auto"
+                  className="text-sm sm:text-base font-sans font-medium text-[#3F3F46] leading-[1.65] max-w-xl mx-auto"
                 >
                   Crafting commercial films, minimalist music videos, and tactile brand documentaries, from camera choreography on set to final color and cut.
                 </p>
 
-                {/* Dual Chunky Neo-Brutalist CTAs */}
+                {/* Dual Chunky Neo-Brutalist CTA Buttons */}
                 <div
                   data-gsap="hero-cta"
                   className="flex flex-wrap items-center justify-center gap-3.5 pt-1"
                 >
                   <MagneticButton>
-                    <Button
+                    <button
                       type="button"
                       onClick={() => setActiveFilmId(resolvedShowreel.id)}
-                      className="brutal-cta h-12 px-6 rounded-xl text-[#09090B] text-xs sm:text-sm font-mono font-bold gap-2 cursor-pointer"
+                      className="brutal-cta group inline-flex items-center gap-2 h-12 rounded-2xl px-6 text-xs sm:text-sm font-mono font-bold cursor-pointer"
                     >
                       <span>Watch 2026 Showreel</span>
-                      <ArrowUpRight className="w-4 h-4" />
-                    </Button>
+                      <ArrowUpRight
+                        className="w-4 h-4 transition-transform duration-150 group-hover:translate-x-0.5 group-hover:-translate-y-0.5"
+                        strokeWidth={2.25}
+                      />
+                    </button>
                   </MagneticButton>
 
                   <MagneticButton strength={0.18}>
-                    <Button
+                    <button
                       type="button"
-                      variant="outline"
                       onClick={() => scrollToSection('works')}
-                      className="brutal-button h-12 px-5 rounded-xl text-[#09090B] text-xs sm:text-sm font-mono font-bold cursor-pointer"
+                      className="brutal-button inline-flex items-center h-12 rounded-2xl bg-white px-6 text-xs sm:text-sm font-mono font-bold cursor-pointer"
                     >
                       Browse Works
-                    </Button>
+                    </button>
                   </MagneticButton>
                 </div>
               </div>
 
-              {/* Neo-Brutalist Bright Yellow Frame enclosing Calibrated Dark Neutral Showreel */}
+              {/* Bright Yellow Neo-Brutalist Bezel Enclosing Calibrated Neutral Showreel */}
               <div
                 data-gsap="hero-showreel"
-                className="relative mt-10 md:mt-12 max-w-4xl mx-auto"
+                className="relative mt-10 md:mt-14 max-w-4xl mx-auto"
               >
                 <div
-                  className={`rounded-3xl bg-[#FFE600] p-2 sm:p-2.5 border-[3px] border-[#09090B] shadow-[8px_8px_0_#09090B] ${
-                    devMode ? 'ring-4 ring-[#7C3AED]/45' : ''
+                  className={`relative rounded-3xl bg-[#FFE600] border-[3px] border-[#09090B] shadow-[8px_8px_0_#09090B] p-2 sm:p-3 ${
+                    devMode ? 'ring-4 ring-[#7C3AED]' : ''
                   }`}
                 >
                   <motion.button
@@ -1314,22 +1301,22 @@ function PortfolioApp() {
                       </div>
                     </div>
 
-                    <div className="absolute inset-0 bg-gradient-to-t from-[#09090B]/85 via-black/15 to-transparent pointer-events-none" />
+                    <div className="absolute inset-0 bg-gradient-to-t from-[#09090B]/88 via-[#09090B]/20 to-transparent pointer-events-none" />
 
                     <div className="absolute inset-x-4 bottom-4 sm:inset-x-6 sm:bottom-6 flex items-end justify-between gap-4 text-white">
-                      <div>
-                        <p className="inline-flex items-center px-2 py-0.5 rounded bg-[#FFE600] border border-[#09090B] text-[10px] sm:text-xs font-mono font-bold text-[#09090B] tabular-nums mb-1">
+                      <div className="space-y-1.5">
+                        <span className="inline-block px-2.5 py-0.5 rounded-lg bg-[#FFE600] border-2 border-[#09090B] text-[11px] font-mono font-bold text-[#09090B] tabular-nums">
                           {['Showreel 2026', resolvedShowreel.duration, resolvedShowreel.fps]
                             .filter(Boolean)
                             .join(' · ')}
-                        </p>
+                        </span>
                         <p className="text-sm sm:text-lg font-display font-extrabold tracking-tight text-white">
                           Director of Photography &amp; Lead Editor
                         </p>
                       </div>
 
-                      <span className="brutal-cta inline-flex h-11 w-11 items-center justify-center rounded-xl transition-transform duration-[180ms] group-hover:scale-110 shrink-0">
-                        <Play className="w-4 h-4 fill-current ml-0.5" />
+                      <span className="brutal-cta inline-flex h-12 w-12 items-center justify-center rounded-2xl transition-transform duration-[180ms] group-hover:scale-105 shrink-0">
+                        <Play className="w-5 h-5 fill-current ml-0.5" strokeWidth={2.25} />
                       </span>
                     </div>
                   </motion.button>
@@ -1342,37 +1329,34 @@ function PortfolioApp() {
                 />
               </div>
 
-              {/* Collage Studio Production Specs Cards */}
-              <div className="mt-10 md:mt-12 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 max-w-4xl mx-auto text-left">
-                {STUDIO_TECHNICAL_SPECS.map((spec, idx) => {
-                  const bgColors = ['bg-white', 'bg-[#FEF9C3]', 'bg-[#F3E8FF]', 'bg-[#FCE7F3]'];
-                  return (
-                    <div
-                      key={spec.label}
-                      data-gsap="hero-spec"
-                      className={`brutal-card ${bgColors[idx % bgColors.length]} rounded-xl p-4 space-y-1`}
-                    >
-                      <p className="text-[11px] font-mono font-bold uppercase text-[#52525B]">
-                        {spec.label}
-                      </p>
-                      <p className="text-sm font-display font-extrabold tracking-tight text-[#09090B]">
-                        {spec.value}
-                      </p>
-                    </div>
-                  );
-                })}
+              {/* Colorful Collage Studio Production Specs Grid */}
+              <div className="mt-10 md:mt-14 max-w-4xl mx-auto grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3.5 text-left">
+                {STUDIO_TECHNICAL_SPECS.map((spec, idx) => (
+                  <div
+                    key={spec.label}
+                    data-gsap="hero-spec"
+                    className={`brutal-card rounded-2xl p-4 sm:p-5 space-y-1 ${SPEC_CARD_COLORS[idx % SPEC_CARD_COLORS.length]}`}
+                  >
+                    <p className="text-[11px] font-mono font-bold uppercase tracking-wider text-[#52525B]">
+                      {spec.label}
+                    </p>
+                    <p className="text-sm font-display font-extrabold tracking-tight text-[#09090B] tabular-nums">
+                      {spec.value}
+                    </p>
+                  </div>
+                ))}
               </div>
             </section>
 
-            {/* Infinite Marquee Divider 1 */}
+            {/* MARQUEE DIVIDER 1 */}
             <MarqueeStrip
               variant="yellow"
               items={[
-                'CINEMATOGRAPHY',
-                'COLOR GRADING',
-                'DIRECTING',
-                'NARRATIVE CUT',
-                '24FPS LOG',
+                'COMMERCIAL FILMS',
+                'MUSIC VIDEOS',
+                'DAVINCI RESOLVE',
+                'ANAMORPHIC OPTICS',
+                '12-BIT RAW',
                 'JAKARTA STUDIO',
               ]}
             />
@@ -1384,9 +1368,9 @@ function PortfolioApp() {
                 id="works"
                 className="max-w-7xl mx-auto px-4 sm:px-6 py-12 md:py-20 space-y-6 md:space-y-10"
               >
-                <div data-gsap="works-head" className="flex items-center gap-4 pb-1">
-                  <span className="inline-flex items-center px-3 py-1 rounded-lg bg-[#FFE600] border-2 border-[#09090B] shadow-[3px_3px_0_#09090B] text-xs font-mono font-bold text-[#09090B] tracking-wide shrink-0">
-                    01. Selected Works
+                <div data-gsap="works-head" className="flex items-center gap-3 pt-4">
+                  <span className="inline-flex items-center px-3 py-1 rounded-full bg-[#FF4D8D] border-2 border-[#09090B] shadow-[3px_3px_0_#09090B] text-xs font-mono font-bold uppercase tracking-wider text-[#09090B] shrink-0">
+                    01. Selected Works · Filmography
                   </span>
                   <div className="h-[2.5px] flex-1 bg-[#09090B]" />
                 </div>
@@ -1396,10 +1380,10 @@ function PortfolioApp() {
                   className="flex flex-col md:flex-row md:items-end justify-between gap-4 md:gap-6"
                 >
                   <div className="space-y-2 max-w-xl">
-                    <h2 className="font-display text-[clamp(1.75rem,3vw,2.5rem)] font-extrabold tracking-[-0.03em] leading-[1.08] text-[#09090B]">
+                    <h2 className="font-display text-[clamp(1.75rem,3.2vw,2.6rem)] font-extrabold tracking-tight leading-[1.06] text-[#09090B]">
                       Filmography &amp; Cutdowns
                     </h2>
-                    <p className="text-[clamp(0.875rem,1.05vw,1rem)] font-sans text-[#27272A] leading-[1.6] max-w-[52ch]">
+                    <p className="text-[clamp(0.875rem,1.05vw,1rem)] font-sans text-[#3F3F46] leading-[1.6] max-w-[52ch]">
                       Tap any film card to open the full viewer, playable cut, and camera notes.
                     </p>
                   </div>
@@ -1408,7 +1392,7 @@ function PortfolioApp() {
                     <div
                       role="tablist"
                       aria-label="Filter films by category"
-                      className="brutal-card bg-white inline-flex items-center gap-1 p-1.5 rounded-xl w-max"
+                      className="brutal-card inline-flex items-center gap-1.5 p-1.5 rounded-2xl w-max bg-white"
                     >
                       {CATEGORIES.map((category) => {
                         const isActive = selectedCategory === category;
@@ -1421,15 +1405,15 @@ function PortfolioApp() {
                             whileTap={{scale: 0.95}}
                             transition={CUBIC_TACTILE}
                             onClick={() => setSelectedCategory(category)}
-                            className={`relative px-3.5 min-h-[44px] md:min-h-[36px] text-xs font-mono font-bold rounded-lg transition-colors whitespace-nowrap shrink-0 cursor-pointer focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#7C3AED] ${
-                              isActive ? 'text-[#09090B]' : 'text-[#3F3F46] hover:text-[#09090B]'
+                            className={`relative px-4 min-h-[44px] md:min-h-[36px] text-xs font-mono font-bold rounded-xl transition-colors whitespace-nowrap shrink-0 cursor-pointer focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#7C3AED] ${
+                              isActive ? 'text-[#09090B]' : 'text-[#3F3F46] hover:bg-[#FEF9C3]'
                             }`}
                           >
                             {isActive && (
                               <motion.span
                                 layoutId="active-category-tab"
                                 transition={CUBIC_INDICATOR}
-                                className="absolute inset-0 rounded-lg bg-[#FFE600] border-2 border-[#09090B] shadow-[2px_2px_0_#09090B]"
+                                className="absolute inset-0 rounded-xl bg-[#FFE600] border-2 border-[#09090B] shadow-[2px_2px_0_#09090B]"
                               />
                             )}
                             <span className="relative z-10">{category}</span>
@@ -1441,7 +1425,7 @@ function PortfolioApp() {
                 </div>
 
                 {/* Mobile Tap Rows */}
-                <div className="brutal-card bg-white relative md:hidden divide-y-2 divide-[#09090B] rounded-2xl overflow-hidden">
+                <div className="brutal-card-elevated relative md:hidden divide-y-[2.5px] divide-[#09090B] rounded-2xl overflow-hidden bg-white">
                   <AnimatePresence mode="popLayout" initial={false}>
                     {filteredFilms.map((film, idx) => (
                       <motion.div
@@ -1462,20 +1446,18 @@ function PortfolioApp() {
                           whileTap={{scale: 0.985}}
                           transition={CUBIC_TACTILE}
                           onClick={() => setActiveFilmId(film.id)}
-                          className="w-full flex items-center gap-3.5 p-3 text-left active:bg-[#FEF9C3] transition-colors min-h-[88px] focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-[#7C3AED]"
+                          className="w-full flex items-center gap-3.5 p-3.5 text-left active:bg-[#FEF9C3] transition-colors min-h-[88px] focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-[#7C3AED]"
                         >
                           <div className="relative w-28 aspect-[16/10] rounded-xl overflow-hidden bg-[#09090B] border-2 border-[#09090B] shrink-0">
-                            <div className="w-full h-full">
-                              <FilmImage
-                                src={film.image}
-                                kind={film.imageKind}
-                                alt={film.title}
-                                title={film.title}
-                                compactFallback
-                              />
-                            </div>
-                            <span className="brutal-cta absolute right-1.5 bottom-1.5 inline-flex h-6 w-6 items-center justify-center rounded-md">
-                              <Play className="w-2.5 h-2.5 fill-current ml-0.5" />
+                            <FilmImage
+                              src={film.image}
+                              kind={film.imageKind}
+                              alt={film.title}
+                              title={film.title}
+                              compactFallback
+                            />
+                            <span className="absolute right-1.5 bottom-1.5 inline-flex h-6 w-6 items-center justify-center rounded-lg bg-[#FFE600] border border-[#09090B] text-[#09090B]">
+                              <Play className="w-2.5 h-2.5 fill-current ml-0.5" strokeWidth={2} />
                             </span>
                           </div>
 
@@ -1503,7 +1485,7 @@ function PortfolioApp() {
                   </AnimatePresence>
                 </div>
 
-                {/* Desktop Bento Grid with Playful Collage Card Bases + Neutral Dark Film Thumbnails */}
+                {/* Desktop Expressive Collage Bento Grid */}
                 <LayoutGroup id="desktop-film-grid">
                   <motion.div
                     layout
@@ -1513,20 +1495,13 @@ function PortfolioApp() {
                     <AnimatePresence mode="popLayout" initial={false}>
                       {filteredFilms.map((film, idx) => {
                         const isFeaturedSpan = selectedCategory === 'All' && idx === 0;
+                        const cardColor = WORK_CARD_COLORS[idx % WORK_CARD_COLORS.length];
                         const staggerDelay = Math.min(idx, 6) * 0.055;
                         const layoutTransition = {
                           duration: MOTION_DURATIONS.choreo,
                           delay: staggerDelay,
                           ease: CUBIC_EMPHASIS,
                         };
-                        const cardColors = [
-                          'bg-white',
-                          'bg-[#FEF9C3]',
-                          'bg-[#F3E8FF]',
-                          'bg-[#FCE7F3]',
-                          'bg-[#ECFCCB]',
-                        ];
-                        const cardBg = cardColors[idx % cardColors.length];
 
                         return (
                           <motion.article
@@ -1565,11 +1540,11 @@ function PortfolioApp() {
                               whileTap={{scale: 0.985}}
                               transition={CUBIC_TACTILE}
                               onClick={() => setActiveFilmId(film.id)}
-                              className={`brutal-card ${cardBg} group w-full text-left rounded-3xl overflow-hidden hover:shadow-[8px_8px_0_#09090B] transition-shadow duration-200 cursor-pointer md:cursor-none focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[#7C3AED] ${
-                                devMode ? 'ring-4 ring-[#7C3AED]/45' : ''
+                              className={`brutal-card ${cardColor} group w-full text-left rounded-3xl overflow-hidden hover:shadow-[8px_8px_0_#09090B] transition-shadow duration-200 cursor-pointer md:cursor-none focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[#7C3AED] ${
+                                devMode ? 'ring-4 ring-[#7C3AED]' : ''
                               }`}
                             >
-                              {/* Neutral calibrated dark media slot for accurate cinematography color */}
+                              {/* Calibrated Neutral Dark Media Slot */}
                               <motion.div
                                 layout
                                 transition={{layout: layoutTransition}}
@@ -1594,24 +1569,23 @@ function PortfolioApp() {
                                   />
                                 </motion.div>
 
-                                {/* Viewfinder Corner Reticles on Hover */}
+                                {/* Yellow Corner Viewfinder Reticles */}
                                 <div
                                   aria-hidden="true"
                                   className="pointer-events-none absolute inset-3.5 opacity-0 scale-[0.97] group-hover:opacity-100 group-hover:scale-100 transition-[opacity,transform] duration-[240ms] ease-[cubic-bezier(0.22,1,0.36,1)]"
                                 >
-                                  <span className="absolute top-0 left-0 w-4 h-4 border-t-[2.5px] border-l-[2.5px] border-[#FFE600]" />
-                                  <span className="absolute top-0 right-0 w-4 h-4 border-t-[2.5px] border-r-[2.5px] border-[#FFE600]" />
-                                  <span className="absolute bottom-0 left-0 w-4 h-4 border-b-[2.5px] border-l-[2.5px] border-[#FFE600]" />
-                                  <span className="absolute bottom-0 right-0 w-4 h-4 border-b-[2.5px] border-r-[2.5px] border-[#FFE600]" />
+                                  <span className="absolute top-0 left-0 w-4 h-4 border-t-2 border-l-2 border-[#FFE600]" />
+                                  <span className="absolute top-0 right-0 w-4 h-4 border-t-2 border-r-2 border-[#FFE600]" />
+                                  <span className="absolute bottom-0 left-0 w-4 h-4 border-b-2 border-l-2 border-[#FFE600]" />
+                                  <span className="absolute bottom-0 right-0 w-4 h-4 border-b-2 border-r-2 border-[#FFE600]" />
                                 </div>
 
-                                {/* Aspect Ratio Readout */}
-                                <span className="pointer-events-none absolute top-3.5 right-3.5 inline-flex items-center rounded-md bg-[#09090B] border-2 border-[#FFE600] px-2 py-0.5 text-[10px] font-mono font-bold text-[#FFE600] tabular-nums">
+                                <span className="pointer-events-none absolute top-3.5 right-3.5 text-[10px] font-mono font-bold text-[#09090B] bg-white border-2 border-[#09090B] shadow-[2px_2px_0_#09090B] rounded-lg px-2.5 py-0.5 tabular-nums">
                                   {film.aspect}
                                 </span>
 
-                                <span className="brutal-cta absolute right-4 bottom-4 inline-flex h-10 w-10 items-center justify-center rounded-xl transition-transform duration-[180ms] group-hover:scale-110">
-                                  <Play className="w-4 h-4 fill-current ml-0.5" />
+                                <span className="brutal-cta absolute right-4 bottom-4 inline-flex h-10 w-10 items-center justify-center rounded-xl transition-transform duration-[180ms] group-hover:scale-105">
+                                  <Play className="w-4 h-4 fill-current ml-0.5" strokeWidth={2.25} />
                                 </span>
                               </motion.div>
 
@@ -1620,11 +1594,11 @@ function PortfolioApp() {
                                 transition={{layout: layoutTransition}}
                                 className="p-6 space-y-2.5"
                               >
-                                <div className="flex items-center justify-between gap-3 text-xs tabular-nums">
-                                  <span className="px-2 py-0.5 rounded bg-white border border-[#09090B] font-mono font-bold text-[11px] text-[#09090B]">
+                                <div className="flex items-center justify-between gap-3 text-xs font-mono font-bold tabular-nums">
+                                  <span className="text-[#52525B] truncate">
                                     {[film.category, film.client].filter(Boolean).join(' · ')}
                                   </span>
-                                  <span className="font-mono font-bold text-[#7C3AED]">
+                                  <span className="text-[#7C3AED] shrink-0">
                                     {[film.duration, film.fps].filter(Boolean).join(' · ')}
                                   </span>
                                 </div>
@@ -1633,11 +1607,11 @@ function PortfolioApp() {
                                   {film.title}
                                 </h3>
 
-                                <p className="text-sm font-sans text-[#27272A] leading-relaxed line-clamp-2">
+                                <p className="text-sm font-sans text-[#3F3F46] leading-relaxed line-clamp-2">
                                   {film.summary}
                                 </p>
 
-                                <div className="pt-2.5 border-t-2 border-[#09090B] flex items-center justify-between gap-3 text-[11px] font-mono font-bold text-[#52525B]">
+                                <div className="pt-3 border-t-2 border-[#09090B] flex items-center justify-between gap-3 text-[11px] font-mono font-bold text-[#3F3F46]">
                                   <span className="truncate">{film.cameraSpec}</span>
                                   <span className="shrink-0 tabular-nums text-[#09090B]">{film.year}</span>
                                 </div>
@@ -1657,23 +1631,34 @@ function PortfolioApp() {
                 </LayoutGroup>
               </section>
 
+              {/* MARQUEE DIVIDER 2 */}
+              <MarqueeStrip
+                variant="pink"
+                reverse
+                items={[
+                  'LOG TO REC.709',
+                  'FILM PRINT EMULATION',
+                  'KODAK 2383',
+                  'COLOR SCIENCE',
+                  'FRAME BY FRAME',
+                ]}
+              />
+
               {/* SECTION 02: Color Grading Compare Slider */}
               <ColorGradingCompare />
 
               {/* SECTION 03: Interactive Editing Timeline Breakdown */}
               <TimelineBreakdown />
 
-              {/* Infinite Marquee Divider 2 */}
+              {/* MARQUEE DIVIDER 3 */}
               <MarqueeStrip
-                variant="pink"
-                reverse
+                variant="purple"
                 items={[
-                  'CAMERA PACKAGE',
-                  'OFFLINE EDIT',
-                  'ONLINE FINISH',
-                  'DAVINCI RESOLVE',
+                  'NLE CUTDOWNS',
                   'SOUND DESIGN',
-                  'COMMERCIAL CUT',
+                  'CINEMATOGRAPHY',
+                  'ON-SET DIT',
+                  'GLOBAL REMOTE DELIVERY',
                 ]}
               />
 
@@ -1682,9 +1667,9 @@ function PortfolioApp() {
                 id="capabilities"
                 className="max-w-7xl mx-auto px-4 sm:px-6 py-12 md:py-24 space-y-8 md:space-y-12"
               >
-                <div data-gsap="cap-head" className="flex items-center gap-4 pb-1">
-                  <span className="inline-flex items-center px-3 py-1 rounded-lg bg-[#FF4D8D] border-2 border-[#09090B] shadow-[3px_3px_0_#09090B] text-xs font-mono font-bold text-[#09090B] tracking-wide shrink-0">
-                    04. Studio Practice
+                <div data-gsap="cap-head" className="flex items-center gap-3 pt-4">
+                  <span className="inline-flex items-center px-3 py-1 rounded-full bg-[#FFE600] border-2 border-[#09090B] shadow-[3px_3px_0_#09090B] text-xs font-mono font-bold uppercase tracking-wider text-[#09090B] shrink-0">
+                    04. Studio Practice · Capabilities
                   </span>
                   <div className="h-[2.5px] flex-1 bg-[#09090B]" />
                 </div>
@@ -1693,12 +1678,12 @@ function PortfolioApp() {
                 <div className="md:hidden space-y-4">
                   <h2
                     data-gsap="cap-head"
-                    className="font-display text-[clamp(1.75rem,4vw,2.1rem)] font-extrabold tracking-[-0.03em] leading-[1.1] text-[#09090B]"
+                    className="font-display text-[clamp(1.75rem,4vw,2.1rem)] font-extrabold tracking-tight leading-[1.1] text-[#09090B]"
                   >
                     From camera package on set to final color and cut.
                   </h2>
 
-                  <div className="brutal-card bg-white divide-y-2 divide-[#09090B] rounded-2xl px-4">
+                  <div className="brutal-card-elevated divide-y-[2.5px] divide-[#09090B] rounded-2xl bg-white px-4">
                     {CAPABILITIES.map((cap) => {
                       const isOpen = expandedCapIndex === cap.index;
                       return (
@@ -1723,6 +1708,7 @@ function PortfolioApp() {
                               className={`w-4 h-4 text-[#09090B] transition-transform duration-[240ms] shrink-0 ${
                                 isOpen ? 'rotate-180 text-[#7C3AED]' : ''
                               }`}
+                              strokeWidth={2.25}
                             />
                           </motion.button>
 
@@ -1735,19 +1721,19 @@ function PortfolioApp() {
                                 transition={{duration: MOTION_DURATIONS.standard, ease: CUBIC_EASE}}
                                 className="pb-4 pl-7 space-y-3"
                               >
-                                <p className="text-sm font-sans text-[#27272A] leading-relaxed">
+                                <p className="text-sm font-sans text-[#3F3F46] leading-relaxed">
                                   {cap.description}
                                 </p>
-                                <p className="text-[11px] font-mono font-bold text-[#52525B]">
+                                <p className="text-[11px] font-mono font-bold text-[#7C3AED]">
                                   {cap.deliverables}
                                 </p>
                                 <button
                                   type="button"
                                   onClick={() => handleSelectCapabilityScope(cap.index)}
-                                  className="brutal-cta inline-flex items-center gap-1.5 min-h-[44px] px-4 rounded-xl text-xs font-mono font-bold cursor-pointer focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#7C3AED]"
+                                  className="brutal-cta inline-flex items-center gap-1.5 min-h-[44px] rounded-xl px-5 text-xs font-mono font-bold cursor-pointer"
                                 >
                                   <span>Book this discipline</span>
-                                  <ArrowUpRight className="w-3.5 h-3.5" />
+                                  <ArrowUpRight className="w-3.5 h-3.5" strokeWidth={2.25} />
                                 </button>
                               </motion.div>
                             )}
@@ -1763,12 +1749,15 @@ function PortfolioApp() {
                   <div className="md:col-span-5 md:sticky md:top-28">
                     <div
                       data-gsap="cap-sticky"
-                      className="brutal-card bg-[#FEF9C3] rounded-3xl p-7 space-y-4"
+                      className="rounded-3xl bg-[#7C3AED] text-white border-[3px] border-[#09090B] shadow-[8px_8px_0_#09090B] p-7 space-y-4"
                     >
-                      <h2 className="font-display text-[clamp(1.85rem,3vw,2.5rem)] font-extrabold tracking-[-0.03em] leading-[1.08] text-[#09090B]">
+                      <span className="inline-block px-3 py-1 rounded-full bg-[#FFE600] border-2 border-[#09090B] text-xs font-mono font-bold text-[#09090B]">
+                        Unified Studio Pipeline
+                      </span>
+                      <h2 className="font-display text-[clamp(1.85rem,3vw,2.5rem)] font-extrabold tracking-tight leading-[1.08] text-white">
                         From camera package on set to final color and cut.
                       </h2>
-                      <p className="text-sm sm:text-base font-sans text-[#27272A] leading-[1.65] max-w-[42ch]">
+                      <p className="text-sm sm:text-base font-sans text-white/90 leading-[1.65] max-w-[42ch]">
                         Every production runs on a single unified pipeline so pacing, natural light, and color temperature stay cohesive through delivery.
                       </p>
                     </div>
@@ -1777,19 +1766,17 @@ function PortfolioApp() {
                   <div className="md:col-span-7 space-y-4">
                     {CAPABILITIES.map((cap, idx) => {
                       const Icon = CAPABILITY_ICONS[idx] ?? Camera;
-                      const iconColors = ['bg-[#FFE600]', 'bg-[#FF4D8D]', 'bg-[#B8FF3B]'];
+                      const rowBg = ['bg-white', 'bg-[#FEF9C3]', 'bg-[#FCE7F3]'][idx % 3];
                       return (
                         <div
                           key={cap.index}
                           data-gsap="cap-row"
-                          className="brutal-card bg-white rounded-2xl p-6 flex flex-col gap-3.5"
+                          className={`brutal-card ${rowBg} rounded-2xl p-6 flex flex-col gap-3.5`}
                         >
                           <div className="flex items-start justify-between gap-4">
-                            <div className="flex items-center gap-3">
-                              <span
-                                className={`inline-flex h-11 w-11 items-center justify-center rounded-xl border-2 border-[#09090B] shadow-[3px_3px_0_#09090B] text-[#09090B] shrink-0 ${iconColors[idx % iconColors.length]}`}
-                              >
-                                <Icon className="w-4 h-4" />
+                            <div className="flex items-center gap-3.5">
+                              <span className="inline-flex h-11 w-11 items-center justify-center rounded-xl bg-[#FFE600] border-2 border-[#09090B] shadow-[3px_3px_0_#09090B] text-[#09090B] shrink-0">
+                                <Icon className="w-4 h-4" strokeWidth={2.25} />
                               </span>
                               <div>
                                 <span className="block text-[11px] font-mono font-bold text-[#7C3AED] tabular-nums">
@@ -1804,17 +1791,20 @@ function PortfolioApp() {
                             <button
                               type="button"
                               onClick={() => handleSelectCapabilityScope(cap.index)}
-                              className="brutal-button inline-flex items-center gap-1.5 min-h-[38px] px-4 rounded-xl text-xs font-mono font-bold cursor-pointer shrink-0 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#7C3AED]"
+                              className="brutal-button group inline-flex items-center gap-1.5 min-h-[38px] rounded-xl bg-white px-4 text-xs font-mono font-bold cursor-pointer shrink-0"
                             >
                               <span>Select Scope</span>
-                              <ArrowUpRight className="w-3.5 h-3.5" />
+                              <ArrowUpRight
+                                className="w-3.5 h-3.5 text-[#7C3AED] transition-transform duration-150 group-hover:translate-x-0.5 group-hover:-translate-y-0.5"
+                                strokeWidth={2.25}
+                              />
                             </button>
                           </div>
 
-                          <p className="text-sm font-sans text-[#27272A] leading-relaxed max-w-[60ch]">
+                          <p className="text-sm font-sans text-[#3F3F46] leading-relaxed max-w-[60ch]">
                             {cap.description}
                           </p>
-                          <p className="text-[11px] font-mono font-bold text-[#52525B] pt-1 border-t border-[#09090B]/20">
+                          <p className="text-[11px] font-mono font-bold text-[#09090B] pt-3 border-t-2 border-[#09090B]">
                             {cap.deliverables}
                           </p>
                         </div>
@@ -1826,18 +1816,18 @@ function PortfolioApp() {
 
               {/* SECTION 05: Client Notes & Production FAQ */}
               <section className="max-w-7xl mx-auto px-4 sm:px-6 pb-16 md:pb-24 space-y-12 md:space-y-16">
-                <div className="flex items-center gap-4 pb-1">
-                  <span className="inline-flex items-center px-3 py-1 rounded-lg bg-[#B8FF3B] border-2 border-[#09090B] shadow-[3px_3px_0_#09090B] text-xs font-mono font-bold text-[#09090B] tracking-wide shrink-0">
+                <div className="flex items-center gap-3 pt-4">
+                  <span className="inline-flex items-center px-3 py-1 rounded-full bg-[#B8FF3B] border-2 border-[#09090B] shadow-[3px_3px_0_#09090B] text-xs font-mono font-bold uppercase tracking-wider text-[#09090B] shrink-0">
                     05. Client Proof &amp; Studio FAQ
                   </span>
                   <div className="h-[2.5px] flex-1 bg-[#09090B]" />
                 </div>
 
-                {/* Client Testimonials Grid */}
+                {/* Client Testimonials Collage Grid */}
                 <div className="space-y-6">
                   <div className="flex flex-col md:flex-row md:items-end justify-between gap-4">
                     <div className="space-y-2 max-w-xl">
-                      <h2 className="font-display text-[clamp(1.65rem,2.9vw,2.35rem)] font-extrabold tracking-[-0.03em] leading-[1.08] text-[#09090B] text-balance">
+                      <h2 className="font-display text-[clamp(1.65rem,2.9vw,2.45rem)] font-extrabold tracking-tight leading-[1.08] text-[#09090B] text-balance">
                         Trusted by directors, labels, and design houses.
                       </h2>
                     </div>
@@ -1848,11 +1838,11 @@ function PortfolioApp() {
 
                   <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
                     {CLIENT_TESTIMONIALS.map((item, idx) => {
-                      const cardBgs = ['bg-white', 'bg-[#FEF9C3]', 'bg-[#F3E8FF]'];
+                      const cardBg = ['bg-white', 'bg-[#FEF9C3]', 'bg-[#F3E8FF]'][idx % 3];
                       return (
                         <blockquote
                           key={item.id}
-                          className={`brutal-card ${cardBgs[idx % cardBgs.length]} rounded-3xl p-6 sm:p-7 flex flex-col justify-between gap-6`}
+                          className={`brutal-card ${cardBg} rounded-3xl p-6 sm:p-7 flex flex-col justify-between gap-6`}
                         >
                           <p className="text-sm sm:text-[15px] font-sans font-medium text-[#09090B] leading-relaxed">
                             &ldquo;{item.quote}&rdquo;
@@ -1861,10 +1851,10 @@ function PortfolioApp() {
                             <p className="text-sm font-display font-extrabold text-[#09090B]">
                               {item.author}
                             </p>
-                            <p className="text-xs font-sans text-[#3F3F46]">
+                            <p className="text-xs font-sans font-medium text-[#3F3F46]">
                               {item.role} · {item.organization}
                             </p>
-                            <p className="inline-flex items-center px-2 py-0.5 rounded bg-white border border-[#09090B] text-[11px] font-mono font-bold text-[#7C3AED] mt-1">
+                            <p className="text-[11px] font-mono font-bold text-[#7C3AED] pt-1">
                               {item.projectRef}
                             </p>
                           </footer>
@@ -1877,18 +1867,18 @@ function PortfolioApp() {
                 {/* Studio FAQ Accordion */}
                 <div className="grid grid-cols-1 md:grid-cols-12 gap-8 lg:gap-14 items-start pt-4">
                   <div className="md:col-span-5 space-y-3">
-                    <h3 className="font-display text-[clamp(1.5rem,2.6vw,2rem)] font-extrabold tracking-[-0.03em] leading-[1.1] text-[#09090B] text-balance">
+                    <h3 className="font-display text-[clamp(1.5rem,2.6vw,2rem)] font-extrabold tracking-tight leading-[1.1] text-[#09090B] text-balance">
                       Workflow, turnaround, and remote delivery.
                     </h3>
-                    <p className="text-sm font-sans text-[#27272A] leading-relaxed max-w-[40ch]">
+                    <p className="text-sm font-sans text-[#3F3F46] leading-relaxed max-w-[40ch]">
                       Practical details on how shoots, remote assemblies, and DaVinci Resolve passes are scheduled.
                     </p>
-                    <p className="inline-flex items-center px-2.5 py-1 rounded-lg bg-[#FFE600] border-2 border-[#09090B] text-xs font-mono font-bold text-[#09090B]">
+                    <span className="inline-block px-3 py-1 rounded-full bg-[#FFE600] border-2 border-[#09090B] text-xs font-mono font-bold text-[#09090B]">
                       Booking Window · Jakarta &amp; Worldwide Remote
-                    </p>
+                    </span>
                   </div>
 
-                  <div className="md:col-span-7 brutal-card bg-white rounded-3xl divide-y-2 divide-[#09090B] px-5 sm:px-6">
+                  <div className="md:col-span-7 brutal-card-elevated rounded-3xl bg-white divide-y-[2.5px] divide-[#09090B] px-5 sm:px-6">
                     {STUDIO_FAQ.map((faq) => {
                       const isOpen = expandedFaqId === faq.id;
                       return (
@@ -1906,6 +1896,7 @@ function PortfolioApp() {
                               className={`w-4 h-4 text-[#09090B] transition-transform duration-[240ms] shrink-0 ${
                                 isOpen ? 'rotate-180 text-[#7C3AED]' : ''
                               }`}
+                              strokeWidth={2.25}
                             />
                           </button>
 
@@ -1918,7 +1909,7 @@ function PortfolioApp() {
                                 transition={{duration: MOTION_DURATIONS.standard, ease: CUBIC_EASE}}
                                 className="pb-4 space-y-2"
                               >
-                                <p className="text-sm font-sans text-[#27272A] leading-relaxed">
+                                <p className="text-sm font-sans text-[#3F3F46] leading-relaxed">
                                   {faq.answer}
                                 </p>
                                 <p className="text-[11px] font-mono font-bold text-[#7C3AED]">
@@ -1934,37 +1925,25 @@ function PortfolioApp() {
                 </div>
               </section>
 
-              {/* Infinite Marquee Divider 3 */}
-              <MarqueeStrip
-                variant="purple"
-                items={[
-                  'BOOKINGS OPEN 2026',
-                  'COMMERCIAL FILMS',
-                  'MUSIC VIDEOS',
-                  'REMOTE COLOR GRADE',
-                  'JAKARTA & WORLDWIDE',
-                ]}
-              />
-
-              {/* BAND 4: Neo-Brutalist Checkerboard Contact & Footer Section */}
+              {/* BAND 4: Checkerboard Neo-Brutalist Contact & Footer */}
               <section
                 id="contact"
-                className="bg-[#FFFDF5] bg-brutal-checker pt-14 md:pt-24 pb-8"
+                className="relative border-t-[3px] border-[#09090B] bg-brutal-checker pt-14 md:pt-24 pb-8 overflow-hidden"
               >
-                <div className="max-w-5xl mx-auto px-4 sm:px-8 space-y-12">
-                  {/* Centered Handshake Circle + Availability Tag + Headline + Dual Pill Actions + Socials */}
+                <div className="relative z-10 max-w-5xl mx-auto px-4 sm:px-8 space-y-12">
+                  {/* Centered Tactile Icon + Availability Pill + Headline + Chunky CTAs */}
                   <div className="max-w-xl mx-auto text-center space-y-5">
                     <div
                       data-gsap="contact-item"
-                      className="mx-auto inline-flex h-16 w-16 items-center justify-center rounded-2xl bg-[#7C3AED] text-white border-[3px] border-[#09090B] shadow-[5px_5px_0_#09090B]"
+                      className="mx-auto inline-flex h-16 w-16 items-center justify-center rounded-2xl bg-[#FFE600] border-[3px] border-[#09090B] shadow-[5px_5px_0_#09090B] text-[#09090B]"
                     >
-                      <Handshake className="w-7 h-7 stroke-[2]" />
+                      <Handshake className="w-7 h-7" strokeWidth={2.25} />
                     </div>
 
                     <div>
                       <p
                         data-gsap="contact-item"
-                        className="inline-flex items-center px-3 py-1 rounded-full bg-[#FFE600] border-2 border-[#09090B] shadow-[3px_3px_0_#09090B] text-xs font-mono font-bold text-[#09090B]"
+                        className="inline-block px-3.5 py-1 rounded-full bg-[#B8FF3B] border-2 border-[#09090B] shadow-[3px_3px_0_#09090B] text-xs font-mono font-bold uppercase tracking-wider text-[#09090B]"
                       >
                         Bookings Open · Jakarta &amp; Worldwide Remote
                       </p>
@@ -1972,14 +1951,14 @@ function PortfolioApp() {
 
                     <h2
                       data-gsap="contact-item"
-                      className="font-display text-[clamp(1.9rem,3.8vw,2.9rem)] font-extrabold tracking-[-0.03em] leading-[1.08] text-[#09090B] text-balance"
+                      className="font-display text-[clamp(1.95rem,3.9vw,3rem)] font-extrabold tracking-tight leading-[1.06] text-[#09090B] text-balance"
                     >
                       Tell me about your next project
                     </h2>
 
                     <p
                       data-gsap="contact-item"
-                      className="text-sm sm:text-base font-sans font-medium text-[#27272A] leading-relaxed"
+                      className="text-sm sm:text-base font-sans font-medium text-[#3F3F46] leading-relaxed"
                     >
                       Available for commercial shoots, remote narrative editing, and DaVinci Resolve
                       color grading across Southeast Asia and worldwide.
@@ -1990,24 +1969,23 @@ function PortfolioApp() {
                       className="flex flex-wrap items-center justify-center gap-3 pt-1"
                     >
                       <MagneticButton>
-                        <Button
+                        <button
                           type="button"
                           onClick={handleCopyEmail}
-                          className="brutal-cta h-12 px-6 rounded-xl text-[#09090B] text-xs sm:text-sm font-mono font-bold gap-2 cursor-pointer"
+                          className="brutal-cta inline-flex items-center gap-2 h-12 rounded-2xl px-6 text-xs sm:text-sm font-mono font-bold cursor-pointer"
                         >
                           {emailCopied ? (
-                            <Check className="w-4 h-4" />
+                            <Check className="w-4 h-4" strokeWidth={2.25} />
                           ) : (
-                            <Mail className="w-4 h-4" />
+                            <Mail className="w-4 h-4" strokeWidth={2.25} />
                           )}
                           <span>{emailCopied ? 'Copied Email' : 'Email Me'}</span>
-                        </Button>
+                        </button>
                       </MagneticButton>
 
                       <MagneticButton strength={0.18}>
-                        <Button
+                        <button
                           type="button"
-                          variant="outline"
                           onClick={() => {
                             if (window.innerWidth < 768) {
                               setMobileSheetOpen(true);
@@ -2016,11 +1994,11 @@ function PortfolioApp() {
                               document.getElementById('inquiry-name')?.focus();
                             }
                           }}
-                          className="brutal-button h-12 px-5 rounded-xl text-[#09090B] text-xs sm:text-sm font-mono font-bold gap-2 cursor-pointer"
+                          className="brutal-cta-purple inline-flex items-center gap-2 h-12 rounded-2xl px-6 text-xs sm:text-sm font-mono font-bold cursor-pointer"
                         >
-                          <Clapperboard className="w-4 h-4 text-[#7C3AED]" />
+                          <Clapperboard className="w-4 h-4 text-[#FFE600]" strokeWidth={2.25} />
                           <span>Start Project Brief</span>
-                        </Button>
+                        </button>
                       </MagneticButton>
                     </div>
 
@@ -2031,10 +2009,13 @@ function PortfolioApp() {
                           href={social.href}
                           target="_blank"
                           rel="noopener noreferrer"
-                          className="brutal-button inline-flex items-center gap-1 min-h-[44px] px-3.5 rounded-xl text-xs font-mono font-bold focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#7C3AED]"
+                          className="brutal-button group inline-flex items-center gap-1 min-h-[44px] sm:min-h-[38px] rounded-xl bg-white px-4 text-xs font-mono font-bold"
                         >
                           <span>{social.label}</span>
-                          <ArrowUpRight className="w-3.5 h-3.5" />
+                          <ArrowUpRight
+                            className="w-3.5 h-3.5 text-[#7C3AED] transition-transform duration-150 group-hover:translate-x-0.5 group-hover:-translate-y-0.5"
+                            strokeWidth={2.25}
+                          />
                         </a>
                       ))}
                     </div>
@@ -2042,27 +2023,27 @@ function PortfolioApp() {
 
                   {/* Mobile Prepared Brief Confirmation Banner */}
                   {submittedBrief && (
-                    <div className="brutal-card-elevated md:hidden rounded-2xl p-5 space-y-4">
+                    <div className="brutal-card-elevated md:hidden rounded-2xl bg-white p-5 space-y-4">
                       <div className="space-y-1">
-                        <span className="inline-flex items-center px-2 py-0.5 rounded bg-[#B8FF3B] border border-[#09090B] text-[11px] font-mono font-bold text-[#09090B]">
+                        <span className="inline-block px-2.5 py-0.5 rounded-lg bg-[#B8FF3B] border-2 border-[#09090B] text-[11px] font-mono font-bold text-[#09090B]">
                           {submittedBrief.savedOnServer ? 'Brief Sent & Logged' : 'Brief Ready to Dispatch'}
                         </span>
-                        <h3 className="text-base font-display font-extrabold text-[#09090B]">
+                        <h3 className="text-base font-display font-extrabold text-[#09090B] pt-1">
                           {submittedBrief.scope} for {submittedBrief.name}
                         </h3>
                       </div>
                       <div className="flex flex-col gap-2">
                         <a
                           href={submittedBrief.mailtoHref}
-                          className="brutal-cta inline-flex items-center justify-center gap-2 min-h-[44px] px-5 rounded-xl text-xs font-mono font-bold"
+                          className="brutal-cta inline-flex items-center justify-center gap-2 min-h-[44px] rounded-xl px-5 text-xs font-mono font-bold"
                         >
                           <span>Open Draft in Email App</span>
-                          <ExternalLink className="w-3.5 h-3.5" />
+                          <ExternalLink className="w-3.5 h-3.5" strokeWidth={2.25} />
                         </a>
                         <button
                           type="button"
                           onClick={() => setSubmittedBrief(null)}
-                          className="brutal-button min-h-[44px] px-4 rounded-xl text-xs font-mono font-bold"
+                          className="brutal-button min-h-[44px] rounded-xl bg-white px-4 text-xs font-mono font-bold"
                         >
                           Send Another Brief
                         </button>
@@ -2070,10 +2051,10 @@ function PortfolioApp() {
                     </div>
                   )}
 
-                  {/* Desktop Brief Form nested inside elevated Cream Brutalist Card */}
+                  {/* Desktop Brief Form inside Elevated Neo-Brutalist Card */}
                   <div
                     data-gsap="contact-item"
-                    className="brutal-card-elevated hidden md:block max-w-3xl mx-auto rounded-3xl p-8"
+                    className="brutal-card-elevated hidden md:block max-w-3xl mx-auto rounded-3xl bg-white p-8"
                   >
                     {submittedBrief ? (
                       <div className="space-y-5">
@@ -2087,12 +2068,12 @@ function PortfolioApp() {
                             <h3 className="text-xl font-display font-extrabold tracking-tight text-[#09090B]">
                               {submittedBrief.scope} for {submittedBrief.name}
                             </h3>
-                            <p className="text-xs font-sans text-[#3F3F46]">
+                            <p className="text-xs font-sans font-medium text-[#3F3F46]">
                               Reply address: {submittedBrief.email}
                             </p>
                           </div>
-                          <span className="inline-flex items-center gap-1.5 rounded-lg bg-[#B8FF3B] border-2 border-[#09090B] shadow-[2px_2px_0_#09090B] px-3 py-1 text-xs font-mono font-bold text-[#09090B]">
-                            <Check className="w-3.5 h-3.5" />
+                          <span className="inline-flex items-center gap-1.5 rounded-xl bg-[#B8FF3B] border-2 border-[#09090B] shadow-[2px_2px_0_#09090B] px-3 py-1 text-xs font-mono font-bold text-[#09090B]">
+                            <Check className="w-3.5 h-3.5" strokeWidth={2.5} />
                             <span>{submittedBrief.savedOnServer ? 'Sent' : 'Prepared'}</span>
                           </span>
                         </div>
@@ -2105,10 +2086,10 @@ function PortfolioApp() {
                           <div className="flex flex-wrap items-center gap-2.5">
                             <a
                               href={submittedBrief.mailtoHref}
-                              className="brutal-cta inline-flex items-center gap-2 h-11 px-6 rounded-xl text-xs sm:text-sm font-mono font-bold focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#7C3AED]"
+                              className="brutal-cta inline-flex items-center gap-2 h-11 rounded-xl px-6 text-xs sm:text-sm font-mono font-bold"
                             >
                               <span>Open Draft in Email App</span>
-                              <ExternalLink className="w-4 h-4" />
+                              <ExternalLink className="w-4 h-4" strokeWidth={2.25} />
                             </a>
                             <button
                               type="button"
@@ -2120,9 +2101,9 @@ function PortfolioApp() {
                                   toast.info(`Email direct: ${STUDIO_EMAIL}`);
                                 }
                               }}
-                              className="brutal-button inline-flex items-center gap-1.5 h-11 px-5 rounded-xl text-xs sm:text-sm font-mono font-bold cursor-pointer focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#7C3AED]"
+                              className="brutal-button inline-flex items-center gap-1.5 h-11 rounded-xl bg-white px-5 text-xs sm:text-sm font-mono font-bold cursor-pointer"
                             >
-                              <Copy className="w-3.5 h-3.5" />
+                              <Copy className="w-3.5 h-3.5 text-[#7C3AED]" strokeWidth={2} />
                               <span>Copy Brief</span>
                             </button>
                           </div>
@@ -2130,7 +2111,7 @@ function PortfolioApp() {
                           <button
                             type="button"
                             onClick={() => setSubmittedBrief(null)}
-                            className="brutal-button h-11 px-4 rounded-xl text-xs font-mono font-bold cursor-pointer focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#7C3AED]"
+                            className="brutal-button h-11 rounded-xl bg-[#FCE7F3] px-4 text-xs font-mono font-bold cursor-pointer"
                           >
                             Send Another Brief
                           </button>
@@ -2158,11 +2139,11 @@ function PortfolioApp() {
                               aria-describedby={formErrors.name ? 'inquiry-name-error' : undefined}
                               placeholder="Your name"
                               className={`brutal-input w-full h-11 rounded-xl px-3.5 text-base md:text-sm focus:outline-none ${
-                                formErrors.name ? 'border-[#E11D48] bg-[#FFF1F2]' : ''
+                                formErrors.name ? 'border-[#FF4D8D]' : ''
                               }`}
                             />
                             {formErrors.name && (
-                              <p id="inquiry-name-error" role="alert" className="text-xs font-mono font-bold text-[#E11D48]">
+                              <p id="inquiry-name-error" role="alert" className="rounded-lg bg-[#FF4D8D] border-2 border-[#09090B] px-2.5 py-1 text-xs font-mono font-bold text-[#09090B]">
                                 {formErrors.name}
                               </p>
                             )}
@@ -2187,11 +2168,11 @@ function PortfolioApp() {
                               aria-describedby={formErrors.email ? 'inquiry-email-error' : undefined}
                               placeholder="you@studio.com"
                               className={`brutal-input w-full h-11 rounded-xl px-3.5 text-base md:text-sm focus:outline-none ${
-                                formErrors.email ? 'border-[#E11D48] bg-[#FFF1F2]' : ''
+                                formErrors.email ? 'border-[#FF4D8D]' : ''
                               }`}
                             />
                             {formErrors.email && (
-                              <p id="inquiry-email-error" role="alert" className="text-xs font-mono font-bold text-[#E11D48]">
+                              <p id="inquiry-email-error" role="alert" className="rounded-lg bg-[#FF4D8D] border-2 border-[#09090B] px-2.5 py-1 text-xs font-mono font-bold text-[#09090B]">
                                 {formErrors.email}
                               </p>
                             )}
@@ -2218,8 +2199,8 @@ function PortfolioApp() {
                                   whileTap={{scale: 0.96}}
                                   transition={CUBIC_TACTILE}
                                   onClick={() => setFormScope(scope)}
-                                  className={`inline-flex items-center gap-1.5 min-h-[44px] md:min-h-[38px] px-4 py-1.5 rounded-xl text-xs font-mono font-bold cursor-pointer focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#7C3AED] ${
-                                    selected ? 'brutal-cta' : 'brutal-button'
+                                  className={`inline-flex items-center gap-1.5 min-h-[44px] md:min-h-[38px] rounded-xl px-4 py-1.5 text-xs font-mono font-bold cursor-pointer ${
+                                    selected ? 'brutal-cta' : 'brutal-button bg-white'
                                   }`}
                                 >
                                   <AnimatePresence initial={false}>
@@ -2232,7 +2213,7 @@ function PortfolioApp() {
                                         transition={CUBIC_MICRO}
                                         className="inline-flex"
                                       >
-                                        <Check className="w-3.5 h-3.5" />
+                                        <Check className="w-3.5 h-3.5" strokeWidth={2.5} />
                                       </motion.span>
                                     )}
                                   </AnimatePresence>
@@ -2261,11 +2242,11 @@ function PortfolioApp() {
                             aria-describedby={formErrors.notes ? 'inquiry-notes-error' : undefined}
                             placeholder="Share shoot dates, deliverables, or visual references..."
                             className={`brutal-input w-full rounded-xl px-3.5 py-3 text-base md:text-sm focus:outline-none ${
-                              formErrors.notes ? 'border-[#E11D48] bg-[#FFF1F2]' : ''
+                              formErrors.notes ? 'border-[#FF4D8D]' : ''
                             }`}
                           />
                           {formErrors.notes && (
-                            <p id="inquiry-notes-error" role="alert" className="text-xs font-mono font-bold text-[#E11D48]">
+                            <p id="inquiry-notes-error" role="alert" className="rounded-lg bg-[#FF4D8D] border-2 border-[#09090B] px-2.5 py-1 text-xs font-mono font-bold text-[#09090B]">
                               {formErrors.notes}
                             </p>
                           )}
@@ -2276,22 +2257,22 @@ function PortfolioApp() {
                             {STUDIO_EMAIL} · Typical response within 24 hours
                           </span>
                           <MagneticButton>
-                            <Button
+                            <button
                               type="submit"
                               disabled={isSubmittingBrief}
-                              className="brutal-cta h-11 px-6 rounded-xl font-mono font-bold cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+                              className="brutal-cta h-11 rounded-xl px-6 text-xs sm:text-sm font-mono font-bold cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
                             >
                               {isSubmittingBrief ? 'Sending Project Brief...' : 'Send Project Brief'}
-                            </Button>
+                            </button>
                           </MagneticButton>
                         </div>
                       </form>
                     )}
                   </div>
 
-                  {/* Clean Neo-Brutalist Footer */}
-                  <footer className="brutal-card bg-white rounded-2xl px-5 py-4 flex flex-wrap items-center justify-between gap-4 text-xs font-mono font-bold text-[#27272A]">
-                    <div className="inline-flex items-center gap-2.5">
+                  {/* Bold Neo-Brutalist Footer Bar */}
+                  <footer className="brutal-card rounded-2xl bg-white px-5 py-4 flex flex-wrap items-center justify-between gap-4 text-xs font-mono font-bold text-[#09090B]">
+                    <div className="inline-flex items-center gap-3">
                       <img
                         src={dmsPortoLogo}
                         alt="dms porto"
@@ -2306,49 +2287,49 @@ function PortfolioApp() {
                       <button
                         type="button"
                         onClick={() => setActiveFilmId(resolvedShowreel.id)}
-                        className="inline-flex items-center min-h-[44px] md:min-h-0 rounded-sm px-2 py-2 md:px-1.5 md:py-1 hover:bg-[#FFE600] hover:text-[#09090B] transition-colors cursor-pointer focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#7C3AED]"
+                        className="inline-flex items-center min-h-[44px] md:min-h-0 px-2 py-2 md:px-1.5 md:py-1 hover:text-[#7C3AED] transition-colors cursor-pointer"
                       >
                         Showreel
                       </button>
-                      <span aria-hidden="true">/</span>
+                      <span aria-hidden="true" className="text-[#09090B]/40">/</span>
                       <button
                         type="button"
                         onClick={() => scrollToSection('works')}
-                        className="inline-flex items-center min-h-[44px] md:min-h-0 rounded-sm px-2 py-2 md:px-1.5 md:py-1 hover:bg-[#FFE600] hover:text-[#09090B] transition-colors cursor-pointer focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#7C3AED]"
+                        className="inline-flex items-center min-h-[44px] md:min-h-0 px-2 py-2 md:px-1.5 md:py-1 hover:text-[#7C3AED] transition-colors cursor-pointer"
                       >
                         Works
                       </button>
-                      <span aria-hidden="true">/</span>
+                      <span aria-hidden="true" className="text-[#09090B]/40">/</span>
                       <button
                         type="button"
                         onClick={() => scrollToSection('color-grade')}
-                        className="inline-flex items-center min-h-[44px] md:min-h-0 rounded-sm px-2 py-2 md:px-1.5 md:py-1 hover:bg-[#FFE600] hover:text-[#09090B] transition-colors cursor-pointer focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#7C3AED]"
+                        className="inline-flex items-center min-h-[44px] md:min-h-0 px-2 py-2 md:px-1.5 md:py-1 hover:text-[#7C3AED] transition-colors cursor-pointer"
                       >
                         Color Grade
                       </button>
-                      <span aria-hidden="true">/</span>
+                      <span aria-hidden="true" className="text-[#09090B]/40">/</span>
                       <button
                         type="button"
                         onClick={() => scrollToSection('timeline')}
-                        className="inline-flex items-center min-h-[44px] md:min-h-0 rounded-sm px-2 py-2 md:px-1.5 md:py-1 hover:bg-[#FFE600] hover:text-[#09090B] transition-colors cursor-pointer focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#7C3AED]"
+                        className="inline-flex items-center min-h-[44px] md:min-h-0 px-2 py-2 md:px-1.5 md:py-1 hover:text-[#7C3AED] transition-colors cursor-pointer"
                       >
                         Timeline
                       </button>
-                      <span aria-hidden="true">/</span>
+                      <span aria-hidden="true" className="text-[#09090B]/40">/</span>
                       <button
                         type="button"
                         onClick={() => scrollToSection('capabilities')}
-                        className="inline-flex items-center min-h-[44px] md:min-h-0 rounded-sm px-2 py-2 md:px-1.5 md:py-1 hover:bg-[#FFE600] hover:text-[#09090B] transition-colors cursor-pointer focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#7C3AED]"
+                        className="inline-flex items-center min-h-[44px] md:min-h-0 px-2 py-2 md:px-1.5 md:py-1 hover:text-[#7C3AED] transition-colors cursor-pointer"
                       >
                         Services
                       </button>
-                      <span aria-hidden="true">/</span>
+                      <span aria-hidden="true" className="text-[#09090B]/40">/</span>
                       <button
                         type="button"
                         onClick={handleCopyEmail}
-                        className="inline-flex items-center gap-1 min-h-[44px] md:min-h-0 rounded-sm px-2 py-2 md:px-1.5 md:py-1 hover:bg-[#FFE600] hover:text-[#09090B] transition-colors cursor-pointer focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#7C3AED]"
+                        className="inline-flex items-center gap-1 min-h-[44px] md:min-h-0 px-2 py-2 md:px-1.5 md:py-1 hover:text-[#7C3AED] transition-colors cursor-pointer"
                       >
-                        <Copy className="w-3 h-3" />
+                        <Copy className="w-3 h-3" strokeWidth={2} />
                         <span>{STUDIO_EMAIL}</span>
                       </button>
                     </div>
@@ -2357,10 +2338,10 @@ function PortfolioApp() {
               </section>
             </main>
 
-            {/* Mobile Bottom Thumb-Zone Neo-Brutalist Navigation */}
+            {/* Mobile Bottom Warm-Cream Thumb-Zone Dock */}
             <nav
               aria-label="Mobile bottom navigation"
-              className="md:hidden fixed bottom-0 inset-x-0 z-40 h-[calc(3.75rem+env(safe-area-inset-bottom))] pb-[env(safe-area-inset-bottom)] bg-[#FFFDF5] border-t-[3px] border-[#09090B] shadow-[0_-4px_0_#09090B] grid grid-cols-4 items-center px-2"
+              className="md:hidden fixed bottom-0 inset-x-0 z-40 h-[calc(3.75rem+env(safe-area-inset-bottom))] pb-[env(safe-area-inset-bottom)] bg-[#FFFDF5] border-t-[3px] border-[#09090B] grid grid-cols-4 items-center px-2 gap-1"
             >
               {mobileTabs.map((tab) => {
                 const Icon = tab.icon;
@@ -2372,13 +2353,13 @@ function PortfolioApp() {
                     whileTap={{scale: 0.92}}
                     transition={CUBIC_TACTILE}
                     onClick={() => scrollToSection(tab.id)}
-                    className={`relative flex flex-col items-center justify-center h-11 min-h-[44px] gap-0.5 rounded-xl transition-colors focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-[#7C3AED] ${
+                    className={`relative flex flex-col items-center justify-center h-11 min-h-[44px] gap-0.5 rounded-xl border-2 transition-colors ${
                       isActive
-                        ? 'bg-[#FFE600] text-[#09090B] border-2 border-[#09090B] shadow-[2px_2px_0_#09090B]'
-                        : 'text-[#3F3F46]'
+                        ? 'bg-[#FFE600] text-[#09090B] border-[#09090B] shadow-[2px_2px_0_#09090B]'
+                        : 'border-transparent text-[#3F3F46]'
                     }`}
                   >
-                    <Icon className="w-[17px] h-[17px]" strokeWidth={isActive ? 2.5 : 2} />
+                    <Icon className="w-[17px] h-[17px]" strokeWidth={2} />
                     <span className="text-[10px] font-mono font-bold tracking-tight">
                       {tab.label}
                     </span>
@@ -2421,7 +2402,7 @@ function PortfolioApp() {
         />
 
         <Suspense fallback={null}>
-          {activeFilm !== null && (
+          {activeFilm !== null && accessRole !== 'pending' && (
             <FilmLightboxModal
               project={activeFilm}
               open={activeFilm !== null}
@@ -2440,7 +2421,23 @@ function PortfolioApp() {
           {accessRole === 'developer' && <DevMediaDrawer />}
         </Suspense>
 
-        <Toaster theme="light" position="bottom-right" />
+        <GeminiFloatingChat
+          visible={
+            accessRole !== 'pending' &&
+            activeFilm === null &&
+            !drawerOpen &&
+            !mobileSheetOpen
+          }
+          onJumpToContact={() => {
+            if (window.innerWidth < 768) {
+              setMobileSheetOpen(true);
+            } else {
+              scrollToSection('contact');
+            }
+          }}
+        />
+
+        <Toaster theme="light" position="bottom-left" />
       </div>
     </MotionConfig>
   );

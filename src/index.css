@@ -17,13 +17,12 @@
   --font-sans: "Space Grotesk", ui-sans-serif, system-ui, sans-serif;
   --font-serif: "Syne", ui-sans-serif, system-ui, sans-serif;
   --font-mono: "Space Mono", ui-monospace, SFMono-Regular, monospace;
-  --color-brutal-cream: #FFFDF5;
+  --color-cream-base: #FFFDF5;
+  --color-ink-black: #09090B;
   --color-brutal-yellow: #FFE600;
   --color-brutal-purple: #7C3AED;
   --color-brutal-pink: #FF4D8D;
   --color-brutal-lime: #B8FF3B;
-  --color-brutal-blue: #38BDF8;
-  --color-brutal-ink: #09090B;
   --color-accent-cobalt: var(--accent-cobalt);
   --color-accent-violet: var(--accent-violet);
   --color-surface-warm: var(--surface-warm);
@@ -62,28 +61,28 @@
   --foreground: #09090B;
   --card: #FFFFFF;
   --card-foreground: #09090B;
-  --popover: #FFFDF5;
+  --popover: #FFFFFF;
   --popover-foreground: #09090B;
   --primary: #FFE600;
   --primary-foreground: #09090B;
-  --secondary: #F4F0E4;
+  --secondary: #FFFDF5;
   --secondary-foreground: #09090B;
-  --muted: #F4EFE0;
+  --muted: #F5F0E1;
   --muted-foreground: #52525B;
-  --ink-secondary: #27272A;
+  --ink-secondary: #3F3F46;
   --accent: #7C3AED;
   --accent-foreground: #FFFFFF;
-  --accent-cobalt: #38BDF8;
-  --accent-violet: #7C3AED;
-  --surface-warm: #FFFDF5;
-  --surface-track: #F4EFE0;
+  --accent-cobalt: #7C3AED;
+  --accent-violet: #FF4D8D;
+  --surface-warm: #FEF9C3;
+  --surface-track: #F5F0E1;
   --border-warm: #09090B;
   --divider-hairline: #09090B;
-  --destructive: #E11D48;
+  --destructive: #FF4D8D;
   --border: #09090B;
   --input: #09090B;
   --ring: #7C3AED;
-  --radius: 0.75rem;
+  --radius: 1rem;
   --ease-cubic: cubic-bezier(0.22, 1, 0.36, 1);
   --ease-cubic-in-out: cubic-bezier(0.76, 0, 0.24, 1);
   --duration-micro: 160ms;
@@ -115,11 +114,13 @@
 }
 
 /* ==========================================================================
-   Playful Neo-Brutalism & Maximalism Design System (Gumroad & Figma Inspired)
-   1. Warm Cream (#FFFDF5) Collage Canvas + Halftone/Grid/Checkerboard Textures
-   2. Pitch-Black 2.5px–3px Borders (#09090B) & Non-Blurred Hard Offset Shadows
-   3. High-Contrast Dopamine Fills (#FFE600 Yellow, #7C3AED Purple, #FF4D8D Pink)
-   4. Neutral #09090B Calibrated Inner Film Stages for True Color Perception
+   Playful Neo-Brutalism (Modern Web Maximalism ala Gumroad & Figma)
+   1. Warm Cream (#FFFDF5) Canvas + Bold #09090B Solid Borders
+   2. Dopamine High-Contrast Palette: Yellow (#FFE600), Electric Purple (#7C3AED),
+      Neon Pink (#FF4D8D), Acid Lime (#B8FF3B)
+   3. Tactile Hard Offset Shadows (non-blurred) with crisp physical press feedback
+   4. Expressive Collage Patterns: Graph Grid, Halftone Dots, Checkerboard
+   5. Calibrated Neutral #09090B Interior Frames for Color-Accurate Video/Film
    ========================================================================== */
 
 .brutal-card {
@@ -137,14 +138,14 @@
 }
 
 .brutal-card-elevated {
-  background-color: #FFFDF5;
+  background-color: #FFFFFF;
   color: #09090B;
   border: 3px solid #09090B;
   box-shadow: 8px 8px 0 #09090B;
 }
 
 .brutal-subtle {
-  background-color: #F7F3E3;
+  background-color: #F5F0E1;
   color: #09090B;
   border: 2px solid #09090B;
   box-shadow: 3px 3px 0 #09090B;
@@ -155,13 +156,16 @@
   color: #09090B;
   border: 2.5px solid #09090B;
   box-shadow: 3px 3px 0 #09090B;
-  transition: transform 140ms var(--ease-cubic), box-shadow 140ms var(--ease-cubic), background-color 140ms var(--ease-cubic);
+  transition:
+    transform 150ms var(--ease-cubic),
+    box-shadow 150ms var(--ease-cubic),
+    background-color 150ms var(--ease-cubic),
+    color 150ms var(--ease-cubic);
 }
 
 .brutal-button:hover:not(:disabled) {
-  background-color: #FEF9C3;
-  transform: translate(-1px, -1px);
-  box-shadow: 4px 4px 0 #09090B;
+  transform: translate(-1.5px, -1.5px);
+  box-shadow: 5px 5px 0 #09090B;
 }
 
 .brutal-button:active:not(:disabled) {
@@ -174,18 +178,21 @@
   color: #09090B;
   border: 2.5px solid #09090B;
   box-shadow: 4px 4px 0 #09090B;
-  transition: transform 140ms var(--ease-cubic), box-shadow 140ms var(--ease-cubic), background-color 140ms var(--ease-cubic);
+  transition:
+    transform 150ms var(--ease-cubic),
+    box-shadow 150ms var(--ease-cubic),
+    background-color 150ms var(--ease-cubic);
 }
 
 .brutal-cta:hover:not(:disabled) {
-  background-color: #FFF04D;
-  transform: translate(-1.5px, -1.5px);
+  background-color: #FFEA2B;
+  transform: translate(-2px, -2px);
   box-shadow: 6px 6px 0 #09090B;
 }
 
 .brutal-cta:active:not(:disabled) {
-  transform: translate(2.5px, 2.5px);
-  box-shadow: 1px 1px 0 #09090B;
+  transform: translate(2px, 2px);
+  box-shadow: 2px 2px 0 #09090B;
 }
 
 .brutal-cta-purple {
@@ -193,18 +200,21 @@
   color: #FFFFFF;
   border: 2.5px solid #09090B;
   box-shadow: 4px 4px 0 #09090B;
-  transition: transform 140ms var(--ease-cubic), box-shadow 140ms var(--ease-cubic), background-color 140ms var(--ease-cubic);
+  transition:
+    transform 150ms var(--ease-cubic),
+    box-shadow 150ms var(--ease-cubic),
+    background-color 150ms var(--ease-cubic);
 }
 
 .brutal-cta-purple:hover:not(:disabled) {
   background-color: #6D28D9;
-  transform: translate(-1.5px, -1.5px);
+  transform: translate(-2px, -2px);
   box-shadow: 6px 6px 0 #09090B;
 }
 
 .brutal-cta-purple:active:not(:disabled) {
-  transform: translate(2.5px, 2.5px);
-  box-shadow: 1px 1px 0 #09090B;
+  transform: translate(2px, 2px);
+  box-shadow: 2px 2px 0 #09090B;
 }
 
 .brutal-cta-pink {
@@ -212,18 +222,21 @@
   color: #09090B;
   border: 2.5px solid #09090B;
   box-shadow: 4px 4px 0 #09090B;
-  transition: transform 140ms var(--ease-cubic), box-shadow 140ms var(--ease-cubic), background-color 140ms var(--ease-cubic);
+  transition:
+    transform 150ms var(--ease-cubic),
+    box-shadow 150ms var(--ease-cubic),
+    background-color 150ms var(--ease-cubic);
 }
 
 .brutal-cta-pink:hover:not(:disabled) {
-  background-color: #FF6BA0;
-  transform: translate(-1.5px, -1.5px);
+  background-color: #FF629B;
+  transform: translate(-2px, -2px);
   box-shadow: 6px 6px 0 #09090B;
 }
 
 .brutal-cta-pink:active:not(:disabled) {
-  transform: translate(2.5px, 2.5px);
-  box-shadow: 1px 1px 0 #09090B;
+  transform: translate(2px, 2px);
+  box-shadow: 2px 2px 0 #09090B;
 }
 
 .brutal-input {
@@ -239,38 +252,39 @@
 }
 
 .brutal-input:focus {
-  background-color: #FFFBEB;
+  background-color: #FEFCE8;
   box-shadow: 4px 4px 0 #7C3AED;
 }
 
-/* Color-Safe Neutral Dark Film Frame inside Bold Brutalist Bezel */
+/* Calibrated Neutral Dark Media Frame with Tactile Neo-Brutalist Border & Hard Shadow */
 .brutal-film-frame {
   background-color: #09090B;
   border: 3px solid #09090B;
-  box-shadow: 7px 7px 0 #09090B;
+  box-shadow: 8px 8px 0 #09090B;
 }
 
-/* Maximalism Collage Texture Patterns */
+/* Expressive Maximalist Patterns */
 .bg-brutal-grid {
   background-image:
-    linear-gradient(to right, rgba(9, 9, 11, 0.065) 1px, transparent 1px),
-    linear-gradient(to bottom, rgba(9, 9, 11, 0.065) 1px, transparent 1px);
+    linear-gradient(to right, rgba(9, 9, 11, 0.08) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(9, 9, 11, 0.08) 1px, transparent 1px);
   background-size: 32px 32px;
 }
 
 .bg-brutal-halftone {
-  background-image: radial-gradient(rgba(9, 9, 11, 0.14) 1.35px, transparent 1.35px);
-  background-size: 14px 14px;
+  background-image: radial-gradient(rgba(9, 9, 11, 0.14) 1.5px, transparent 1.5px);
+  background-size: 16px 16px;
 }
 
 .bg-brutal-checker {
+  background-color: #FFFDF5;
   background-image:
-    linear-gradient(45deg, rgba(9, 9, 11, 0.09) 25%, transparent 25%),
-    linear-gradient(-45deg, rgba(9, 9, 11, 0.09) 25%, transparent 25%),
-    linear-gradient(45deg, transparent 75%, rgba(9, 9, 11, 0.09) 75%),
-    linear-gradient(-45deg, transparent 75%, rgba(9, 9, 11, 0.09) 75%);
-  background-size: 18px 18px;
-  background-position: 0 0, 0 9px, 9px -9px, -9px 0;
+    linear-gradient(45deg, rgba(9, 9, 11, 0.05) 25%, transparent 25%),
+    linear-gradient(-45deg, rgba(9, 9, 11, 0.05) 25%, transparent 25%),
+    linear-gradient(45deg, transparent 75%, rgba(9, 9, 11, 0.05) 75%),
+    linear-gradient(-45deg, transparent 75%, rgba(9, 9, 11, 0.05) 75%);
+  background-size: 28px 28px;
+  background-position: 0 0, 0 14px, 14px -14px, -14px 0;
 }
 
 .no-scrollbar::-webkit-scrollbar {
@@ -357,7 +371,7 @@
   transform: translateZ(0);
 }
 
-@keyframes slowStampSpin {
+@keyframes stamp-rotate-slow {
   from {
     transform: rotate(0deg);
   }
@@ -367,7 +381,7 @@
 }
 
 .stamp-spin-slow {
-  animation: slowStampSpin 18s linear infinite;
+  animation: stamp-rotate-slow 24s linear infinite;
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -376,8 +390,8 @@
     transition: none;
   }
 
-  .animate-spin,
-  .stamp-spin-slow {
+  .stamp-spin-slow,
+  .animate-spin {
     animation: none;
   }
 }

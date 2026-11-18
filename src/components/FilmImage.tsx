@@ -55,21 +55,24 @@ export function FilmImage({
 
   if (!src || !src.trim() || status === 'error') {
     return (
-      <div className="w-full h-full flex flex-col items-center justify-center gap-2 bg-[#080d1c] text-slate-300 p-3 text-center">
-        <Film className={compactFallback ? 'w-5 h-5 text-blue-300/80' : 'w-7 h-7 text-blue-300/80'} />
+      <div className="w-full h-full flex flex-col items-center justify-center gap-2 bg-[#09090B] text-[#E4E4E7] p-3 text-center">
+        <Film
+          className={compactFallback ? 'w-5 h-5 text-[#FFE600]' : 'w-7 h-7 text-[#FFE600]'}
+          strokeWidth={2}
+        />
         {!compactFallback && title && (
-          <span className="text-xs font-medium text-slate-200 line-clamp-1">{title}</span>
+          <span className="text-xs font-mono font-bold text-white line-clamp-1">{title}</span>
         )}
       </div>
     );
   }
 
   return (
-    <div className="relative w-full h-full overflow-hidden bg-[#060914]">
+    <div className="relative w-full h-full overflow-hidden bg-[#09090B]">
       {status === 'loading' && (
         <div
           aria-hidden="true"
-          className="absolute inset-0 bg-gradient-to-br from-white/[0.04] via-blue-500/[0.05] to-violet-500/[0.04] animate-pulse"
+          className="absolute inset-0 bg-[#18181B] animate-pulse"
         />
       )}
 

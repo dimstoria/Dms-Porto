@@ -1,6 +1,6 @@
 /**
- * Fixed Warm Cream (#FFFDF5) Maximalism collage backdrop with crisp graph-grid,
- * subtle corner halftone dot bursts, and restrained geometric frame geometry.
+ * Fixed Warm Cream (#FFFDF5) Modern Web Maximalism canvas backdrop
+ * with bold graph grid, comic halftone dot patches, and dopamine accents.
  */
 export function AmbientLiquidBackground() {
   return (
@@ -8,23 +8,18 @@ export function AmbientLiquidBackground() {
       aria-hidden="true"
       className="pointer-events-none fixed inset-0 z-0 overflow-hidden bg-[#FFFDF5]"
     >
-      {/* Architectural editorial graph grid */}
+      {/* Crisp Graph Grid Layer */}
       <div className="absolute inset-0 bg-brutal-grid opacity-80" />
 
-      {/* Top-left bright yellow halftone corner cluster (softened on margins so foreground stays crisp) */}
-      <div
-        className="hidden sm:block absolute -top-24 -left-20 h-[360px] w-[360px] rounded-full bg-[#FFE600]/22 bg-brutal-halftone border-[3px] border-[#09090B]/10"
-      />
+      {/* Top-right Halftone Patch inside Neon Pink Wash */}
+      <div className="hidden md:block absolute -top-24 -right-24 h-80 w-80 rounded-full bg-[#FFE600]/45 border-[3px] border-[#09090B]/15" />
+      <div className="hidden md:block absolute top-12 right-12 h-48 w-48 bg-brutal-halftone opacity-75" />
 
-      {/* Mid-right soft electric purple geometric corner block */}
-      <div
-        className="hidden md:block absolute top-[28%] -right-24 h-[340px] w-[340px] rotate-12 rounded-3xl bg-[#7C3AED]/10 bg-brutal-halftone border-[3px] border-[#09090B]/10"
-      />
+      {/* Mid-left Electric Purple Collage Block */}
+      <div className="hidden lg:block absolute top-[38%] -left-20 h-44 w-44 rotate-12 rounded-3xl bg-[#7C3AED]/12 border-2 border-[#09090B]/15" />
 
-      {/* Lower-left neon pink halftone collage accent */}
-      <div
-        className="hidden md:block absolute bottom-[8%] -left-20 h-[300px] w-[300px] -rotate-6 rounded-full bg-[#FF4D8D]/14 bg-brutal-halftone border-[3px] border-[#09090B]/10"
-      />
+      {/* Lower-right Acid Lime & Pink Geometric Accents */}
+      <div className="hidden md:block absolute bottom-16 -right-14 h-40 w-40 -rotate-12 rounded-2xl bg-[#FF4D8D]/15 border-2 border-[#09090B]/15" />
     </div>
   );
 }

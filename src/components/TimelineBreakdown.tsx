@@ -1,409 +1,358 @@
-import {useEffect, useRef, useState} from 'react';
-import {ChevronLeft, ChevronRight, Scissors, Volume2} from 'lucide-react';
+import {useMemo, useState} from 'react';
+import {Pause, Play, Scissors, Sliders} from 'lucide-react';
 import {AnimatePresence, motion} from 'motion/react';
-import {TIMELINE_STUDIES, type TimelineClip} from '../data/portfolio';
-import {FilmImage} from './FilmImage';
-import {HorizontalScrollFade} from './HorizontalScrollFade';
-import {DevMediaSlotBadge} from './DevMediaSlotBadge';
+import {TIMELINE_STUDIES} from '../data/portfolio';
 import {useDevMedia} from '../context/DevMediaContext';
-import {CUBIC_EASE, LIQUID_SPRING, LIQUID_SPRING_SNAPPY} from '../lib/motion';
+import {FilmImage} from './FilmImage';
+import {DevMediaSlotBadge} from './DevMediaSlotBadge';
+import {HorizontalScrollFade} from './HorizontalScrollFade';
+import {CUBIC_EASE, CUBIC_INDICATOR, CUBIC_TACTILE, MOTION_DURATIONS} from '../lib/motion';
 
-const TRACK_ORDER: Array<TimelineClip['track']> = ['V2', 'V1', 'A1', 'A2'];
-
-const TRACK_LABELS: Record<TimelineClip['track'], string> = {
-  V2: 'B-Roll',
-  V1: 'Picture',
-  A1: 'Foley',
-  A2: 'Score',
+const TRACK_ROW_STYLES: Record<
+  'V2' | 'V1' | 'A1' | 'A2',
+  {
+    activeClass: string;
+    idleClass: string;
+    badgeBg: string;
+  }
+> = {
+  V2: {
+    activeClass:
+      'bg-[#7C3AED] text-white border-2 border-[#09090B] shadow-[3px_3px_0_#09090B]',
+    idleClass:
+      'bg-[#F3E8FF] text-[#09090B] border-2 border-[#09090B] hover:bg-[#E9D5FF]',
+    badgeBg: 'bg-[#7C3AED] text-white',
+  },
+  V1: {
+    activeClass:
+      'bg-[#FFE600] text-[#09090B] border-2 border-[#09090B] shadow-[3px_3px_0_#09090B]',
+    idleClass:
+      'bg-[#FEF9C3] text-[#09090B] border-2 border-[#09090B] hover:bg-[#FEF08A]',
+    badgeBg: 'bg-[#FFE600] text-[#09090B]',
+  },
+  A1: {
+    activeClass:
+      'bg-[#B8FF3B] text-[#09090B] border-2 border-[#09090B] shadow-[3px_3px_0_#09090B]',
+    idleClass:
+      'bg-[#ECFCCB] text-[#09090B] border-2 border-[#09090B] hover:bg-[#D9F99D]',
+    badgeBg: 'bg-[#B8FF3B] text-[#09090B]',
+  },
+  A2: {
+    activeClass:
+      'bg-[#FF4D8D] text-[#09090B] border-2 border-[#09090B] shadow-[3px_3px_0_#09090B]',
+    idleClass:
+      'bg-[#FCE7F3] text-[#09090B] border-2 border-[#09090B] hover:bg-[#FBCFE8]',
+    badgeBg: 'bg-[#FF4D8D] text-[#09090B]',
+  },
 };
 
-function TrackKindIcon({isAudio}: {isAudio: boolean}) {
-  if (!isAudio) return null;
-  return <Volume2 className="w-3 h-3" aria-hidden="true" />;
-}
-
-function clipClasses(track: TimelineClip['track']): string {
-  switch (track) {
-    case 'V1':
-      return 'bg-[#FFE600] text-[#09090B] border-[#09090B] shadow-[2px_2px_0_#09090B]';
-    case 'V2':
-      return 'bg-[#38BDF8] text-[#09090B] border-[#09090B] shadow-[2px_2px_0_#09090B]';
-    case 'A1':
-      return 'bg-[#B8FF3B] text-[#09090B] border-[#09090B] shadow-[2px_2px_0_#09090B]';
-    case 'A2':
-      return 'bg-[#FF4D8D] text-[#09090B] border-[#09090B] shadow-[2px_2px_0_#09090B]';
-  }
-}
-
 export function TimelineBreakdown() {
-  const {resolveSlot} = useDevMedia();
-  const [studyIndex, setStudyIndex] = useState(0);
-  const [selectedMarkerId, setSelectedMarkerId] = useState(TIMELINE_STUDIES[0].markers[0].id);
-  const markerButtonRefs = useRef<Record<string, HTMLButtonElement | null>>({});
-  const didMountMarkerRef = useRef(false);
+  const {resolveSlot, devMode} = useDevMedia();
+  const [selectedStudyId, setSelectedStudyId] = useState(TIMELINE_STUDIES[0].id);
+  const activeStudy =
+    TIMELINE_STUDIES.find((s) => s.id === selectedStudyId) ?? TIMELINE_STUDIES[0];
 
-  const study = TIMELINE_STUDIES[studyIndex];
+  const [selectedMarkerId, setSelectedMarkerId] = useState(activeStudy.markers[0].id);
+  const [selectedClipId, setSelectedClipId] = useState<string | null>(null);
+
   const activeMarker =
-    study.markers.find((m) => m.id === selectedMarkerId) ?? study.markers[0];
-  const markerSlotKey = `timeline:${study.id}:${activeMarker.id}`;
-  const resolvedPreview = resolveSlot(markerSlotKey, activeMarker.previewImage);
+    activeStudy.markers.find((m) => m.id === selectedMarkerId) ?? activeStudy.markers[0];
 
-  useEffect(() => {
-    if (!didMountMarkerRef.current) {
-      didMountMarkerRef.current = true;
-      return;
-    }
-    const activeBtn = markerButtonRefs.current[activeMarker.id];
-    const scrollContainer = activeBtn?.parentElement;
-    if (!activeBtn || !scrollContainer) return;
-
-    const btnRect = activeBtn.getBoundingClientRect();
-    const containerRect = scrollContainer.getBoundingClientRect();
-    const btnLeft = btnRect.left - containerRect.left + scrollContainer.scrollLeft;
-    const btnRight = btnLeft + btnRect.width;
-    const viewLeft = scrollContainer.scrollLeft;
-    const viewRight = viewLeft + scrollContainer.clientWidth;
-
-    if (btnLeft < viewLeft + 16) {
-      scrollContainer.scrollTo({left: Math.max(0, btnLeft - 16), behavior: 'smooth'});
-    } else if (btnRight > viewRight - 16) {
-      scrollContainer.scrollTo({
-        left: btnRight - scrollContainer.clientWidth + 16,
-        behavior: 'smooth',
-      });
-    }
-  }, [activeMarker.id]);
-
-  const handleSelectStudy = (idx: number) => {
-    setStudyIndex(idx);
-    setSelectedMarkerId(TIMELINE_STUDIES[idx].markers[0].id);
-  };
-
-  const activeMarkerIdx = Math.max(
-    0,
-    study.markers.findIndex((m) => m.id === activeMarker.id),
+  const resolvedMarkerMedia = resolveSlot(
+    `timeline:${activeStudy.id}:${activeMarker.id}`,
+    activeMarker.previewImage,
   );
 
-  const stepMarker = (delta: number) => {
-    const nextIdx = Math.max(0, Math.min(study.markers.length - 1, activeMarkerIdx + delta));
-    const target = study.markers[nextIdx];
-    if (target) setSelectedMarkerId(target.id);
+  const handleSelectStudy = (studyId: string) => {
+    const study = TIMELINE_STUDIES.find((s) => s.id === studyId);
+    if (!study) return;
+    setSelectedStudyId(study.id);
+    setSelectedMarkerId(study.markers[0].id);
+    setSelectedClipId(null);
   };
 
-  const handleSelectClip = (clip: TimelineClip) => {
-    const clipStart = clip.startPercent;
-    const clipEnd = clip.startPercent + clip.widthPercent;
-    const clipMid = clipStart + clip.widthPercent / 2;
+  const trackRows = useMemo(
+    () =>
+      (['V2', 'V1', 'A1', 'A2'] as const).map((track) => ({
+        track,
+        clips: activeStudy.clips.filter((c) => c.track === track),
+      })),
+    [activeStudy.clips],
+  );
 
-    const insideClip = study.markers.filter(
-      (m) => m.percent >= clipStart - 2 && m.percent <= clipEnd + 2,
-    );
-    const pool = insideClip.length > 0 ? insideClip : study.markers;
+  const currentIndex = activeStudy.markers.findIndex((m) => m.id === activeMarker.id);
 
-    let best = pool[0];
-    let bestDist = Infinity;
-    for (const m of pool) {
-      const dist = Math.abs(m.percent - clipMid);
-      if (dist < bestDist) {
-        best = m;
-        bestDist = dist;
-      }
-    }
-    if (best) setSelectedMarkerId(best.id);
+  const handleStepCut = () => {
+    const nextIdx = (currentIndex + 1) % activeStudy.markers.length;
+    setSelectedMarkerId(activeStudy.markers[nextIdx].id);
+    setSelectedClipId(null);
   };
 
   return (
     <section
       id="timeline"
       aria-labelledby="timeline-heading"
-      className="relative max-w-7xl mx-auto px-4 sm:px-6 py-14 md:py-22 space-y-6 md:space-y-8"
+      className="relative max-w-7xl mx-auto px-4 sm:px-6 py-12 md:py-20 space-y-6 md:space-y-8"
     >
-      <div data-gsap="tl-head" className="flex items-center gap-4 pb-1">
-        <span className="inline-flex items-center px-3 py-1 rounded-lg bg-[#7C3AED] text-white border-2 border-[#09090B] shadow-[3px_3px_0_#09090B] text-xs font-mono font-bold tracking-wide shrink-0">
-          03. Cut Architecture
+      {/* Neo-Brutalist Section Header Bar */}
+      <div data-gsap="tl-head" className="flex items-center gap-3 pt-4">
+        <span className="inline-flex items-center px-3 py-1 rounded-full bg-[#7C3AED] border-2 border-[#09090B] shadow-[3px_3px_0_#09090B] text-xs font-mono font-bold uppercase tracking-wider text-white shrink-0">
+          03. Cut Architecture · NLE Sequence
         </span>
         <div className="h-[2.5px] flex-1 bg-[#09090B]" />
       </div>
 
-      <div data-gsap="tl-head" className="flex flex-col md:flex-row md:items-end justify-between gap-4 md:gap-6">
+      {/* Header Row */}
+      <div
+        data-gsap="tl-head"
+        className="flex flex-col md:flex-row md:items-end justify-between gap-4 md:gap-6"
+      >
         <div className="space-y-2 max-w-xl">
           <h2
             id="timeline-heading"
-            className="font-display text-[clamp(1.75rem,3.2vw,2.65rem)] font-extrabold tracking-tight leading-[1.08] text-[#09090B]"
+            className="font-display text-[clamp(1.75rem,3.2vw,2.6rem)] font-extrabold tracking-tight leading-[1.06] text-[#09090B]"
           >
-            Inside the Edit Timeline
+            Interactive Editing Timeline
           </h2>
-          <p className="text-[clamp(0.875rem,1.05vw,1rem)] text-zinc-700 font-medium leading-[1.6] max-w-[52ch]">
-            Select any cut marker across video and audio tracks to inspect why each transition lands where it does.
+          <p className="text-[clamp(0.875rem,1.05vw,1rem)] font-sans text-[#3F3F46] leading-[1.6] max-w-[52ch]">
+            Step through cut markers, J/L-cut audio stems, and visual tracks to inspect editorial pacing.
           </p>
         </div>
 
-        <HorizontalScrollFade className="max-w-full self-start md:self-auto">
-          <div
-            role="tablist"
-            aria-label="Select edit timeline study"
-            className="brutal-card inline-flex items-center gap-1 p-1.5 rounded-2xl w-max"
+        {/* Study Switcher & Step Button */}
+        <div className="flex flex-wrap items-center gap-2.5">
+          <HorizontalScrollFade className="max-w-full">
+            <div
+              role="tablist"
+              aria-label="Editing timeline studies"
+              className="brutal-card inline-flex items-center gap-1.5 p-1.5 rounded-2xl w-max bg-white"
+            >
+              {TIMELINE_STUDIES.map((study) => {
+                const active = study.id === activeStudy.id;
+                return (
+                  <motion.button
+                    key={study.id}
+                    type="button"
+                    role="tab"
+                    aria-selected={active}
+                    whileTap={{scale: 0.96}}
+                    transition={CUBIC_TACTILE}
+                    onClick={() => handleSelectStudy(study.id)}
+                    className={`relative px-4 min-h-[44px] md:min-h-[36px] text-xs font-mono font-bold rounded-xl transition-colors whitespace-nowrap shrink-0 cursor-pointer focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#7C3AED] ${
+                      active ? 'text-[#09090B]' : 'text-[#3F3F46] hover:bg-[#F3E8FF]'
+                    }`}
+                  >
+                    {active && (
+                      <motion.span
+                        layoutId="active-timeline-study"
+                        transition={CUBIC_INDICATOR}
+                        className="absolute inset-0 rounded-xl bg-[#FFE600] border-2 border-[#09090B] shadow-[2px_2px_0_#09090B]"
+                      />
+                    )}
+                    <span className="relative z-10">{study.title.split(':')[0].trim()}</span>
+                  </motion.button>
+                );
+              })}
+            </div>
+          </HorizontalScrollFade>
+
+          <motion.button
+            type="button"
+            whileTap={{scale: 0.96}}
+            transition={CUBIC_TACTILE}
+            onClick={handleStepCut}
+            className="brutal-cta-pink inline-flex items-center gap-1.5 min-h-[44px] md:min-h-[40px] rounded-xl px-4 text-xs font-mono font-bold cursor-pointer"
           >
-            {TIMELINE_STUDIES.map((item, idx) => {
-              const isActive = idx === studyIndex;
-              return (
-                <motion.button
-                  key={item.id}
-                  type="button"
-                  role="tab"
-                  aria-selected={isActive}
-                  whileTap={{scale: 0.95}}
-                  transition={LIQUID_SPRING_SNAPPY}
-                  onClick={() => handleSelectStudy(idx)}
-                  className={`relative px-3.5 min-h-[44px] md:min-h-[36px] text-xs font-mono font-bold rounded-xl whitespace-nowrap shrink-0 cursor-pointer focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#7C3AED] ${
-                    isActive ? 'text-[#09090B]' : 'text-zinc-600 hover:text-[#09090B]'
-                  }`}
-                >
-                  {isActive && (
-                    <motion.span
-                      layoutId="active-timeline-study"
-                      transition={LIQUID_SPRING}
-                      className="absolute inset-0 rounded-xl bg-[#FFE600] border-2 border-[#09090B] shadow-[2px_2px_0_#09090B]"
-                    />
-                  )}
-                  <span className="relative z-10">{item.title.split(':')[0].trim()}</span>
-                </motion.button>
-              );
-            })}
-          </div>
-        </HorizontalScrollFade>
+            {currentIndex === activeStudy.markers.length - 1 ? (
+              <Pause className="w-3.5 h-3.5 fill-current" strokeWidth={2} />
+            ) : (
+              <Play className="w-3.5 h-3.5 fill-current ml-0.5" strokeWidth={2} />
+            )}
+            <span>Next Marker</span>
+          </motion.button>
+        </div>
       </div>
 
-      {/* Top Inspector: Neutral Dark Film Frame Preview + Cut Rationale */}
-      <div data-gsap="tl-inspector" className="brutal-card-elevated grid grid-cols-1 lg:grid-cols-12 gap-6 items-stretch rounded-3xl p-4 sm:p-6">
-        <div className="brutal-film-frame lg:col-span-5 relative aspect-[16/10] rounded-2xl overflow-hidden">
-          <AnimatePresence mode="wait">
-            <motion.div
-              key={activeMarker.id}
-              initial={{opacity: 0.35}}
-              animate={{opacity: 1}}
-              exit={{opacity: 0.35}}
-              transition={{duration: 0.24, ease: CUBIC_EASE}}
-              className="w-full h-full"
-            >
-              <FilmImage
-                src={resolvedPreview.src}
-                kind={resolvedPreview.kind}
-                alt={activeMarker.title}
-                title={activeMarker.title}
-                priority
-              />
-            </motion.div>
-          </AnimatePresence>
+      {/* Main Split: Neon Pink Outer Preview Bezel + Cut Inspector Card */}
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-5 items-stretch">
+        <div
+          data-gsap="tl-inspector"
+          className={`lg:col-span-7 rounded-3xl bg-[#FF4D8D] border-[3px] border-[#09090B] shadow-[8px_8px_0_#09090B] p-2.5 flex flex-col justify-between ${
+            devMode ? 'ring-4 ring-[#7C3AED]' : ''
+          }`}
+        >
+          <div className="relative aspect-[16/9] w-full rounded-2xl overflow-hidden bg-[#09090B] border-[2.5px] border-[#09090B]">
+            <AnimatePresence mode="wait" initial={false}>
+              <motion.div
+                key={`${activeStudy.id}-${activeMarker.id}`}
+                initial={{opacity: 0}}
+                animate={{opacity: 1}}
+                exit={{opacity: 0}}
+                transition={{duration: MOTION_DURATIONS.micro, ease: CUBIC_EASE}}
+                className="absolute inset-0"
+              >
+                <FilmImage
+                  src={resolvedMarkerMedia.src}
+                  kind={resolvedMarkerMedia.kind}
+                  alt={activeMarker.title}
+                  title={activeMarker.title}
+                />
+              </motion.div>
+            </AnimatePresence>
 
-          <div className="absolute top-3 left-3 pointer-events-none">
-            <span className="inline-block bg-[#FFE600] border-2 border-[#09090B] shadow-[2px_2px_0_#09090B] text-[#09090B] text-[11px] font-mono font-bold px-2.5 py-1 rounded-lg tabular-nums">
-              {activeMarker.timecode} · {activeMarker.technique}
-            </span>
-          </div>
+            <div className="absolute top-3 left-3 inline-flex items-center gap-2 rounded-xl bg-[#FFE600] border-2 border-[#09090B] shadow-[3px_3px_0_#09090B] px-3 py-1 text-[11px] font-mono font-bold text-[#09090B] tabular-nums">
+              <span>{activeMarker.timecode}</span>
+              <span>· {activeStudy.fps}</span>
+            </div>
 
-          <DevMediaSlotBadge
-            slotKey={markerSlotKey}
-            label="Ganti Frame Cut"
-            position="bottom-left"
-          />
-        </div>
-
-        <div className="lg:col-span-7 flex flex-col justify-between gap-5 py-1">
-          <div className="space-y-2.5">
-            <div className="flex flex-wrap items-center justify-between gap-2 text-xs font-mono font-bold text-zinc-700 tabular-nums">
-              <span>{study.subtitle}</span>
-              <span className="px-2 py-0.5 rounded-md bg-[#EDE9FE] border border-[#09090B] text-[#09090B]">
-                Total {study.duration}
+            <div className="absolute bottom-3 left-3 inline-flex items-center gap-1.5 rounded-xl bg-white border-2 border-[#09090B] shadow-[3px_3px_0_#09090B] px-3 py-1 text-[11px] font-mono font-bold text-[#09090B]">
+              <span>
+                {activeMarker.technique} · {activeMarker.title}
               </span>
             </div>
-            <h3 className="font-display text-2xl sm:text-3xl font-extrabold tracking-tight text-[#09090B]">
+
+            <DevMediaSlotBadge
+              slotKey={`timeline:${activeStudy.id}:${activeMarker.id}`}
+              label="Edit Frame"
+              position="top-right"
+              compact
+            />
+          </div>
+        </div>
+
+        {/* Active Cut Inspector Card */}
+        <div
+          data-gsap="tl-inspector"
+          className="lg:col-span-5 brutal-card-elevated rounded-3xl bg-white p-6 flex flex-col justify-between gap-5"
+        >
+          <div className="space-y-3">
+            <div className="flex items-center justify-between gap-2 text-xs font-mono font-bold text-[#09090B]">
+              <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-[#B8FF3B] border-2 border-[#09090B]">
+                <Scissors className="w-3.5 h-3.5" strokeWidth={2.25} />
+                <span>Cut {activeMarker.timecode}</span>
+              </span>
+              <span className="tabular-nums text-[#52525B]">{activeStudy.duration}</span>
+            </div>
+
+            <h3 className="font-display text-xl sm:text-2xl font-extrabold tracking-tight text-[#09090B]">
               {activeMarker.title}
             </h3>
-            <p className="text-sm sm:text-base text-zinc-800 leading-relaxed max-w-2xl">
+
+            <p className="text-sm font-sans text-[#3F3F46] leading-relaxed">
               {activeMarker.rationale}
             </p>
           </div>
 
-          <div className="space-y-2.5">
-            <div className="flex items-center justify-between gap-2">
-              <p className="text-[11px] font-mono font-bold text-zinc-600">Jump to Cut Marker</p>
-              <div className="inline-flex items-center gap-1.5">
-                <motion.button
-                  type="button"
-                  whileTap={{scale: 0.92}}
-                  transition={LIQUID_SPRING_SNAPPY}
-                  disabled={activeMarkerIdx <= 0}
-                  onClick={() => stepMarker(-1)}
-                  aria-label="Previous cut marker"
-                  className="brutal-button inline-flex h-11 w-11 sm:h-8 sm:w-8 items-center justify-center rounded-xl cursor-pointer disabled:opacity-35 disabled:cursor-not-allowed focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#7C3AED]"
-                >
-                  <ChevronLeft className="w-3.5 h-3.5" />
-                </motion.button>
-                <span className="text-[11px] font-mono font-bold text-[#09090B] tabular-nums px-1.5">
-                  {activeMarkerIdx + 1}/{study.markers.length}
-                </span>
-                <motion.button
-                  type="button"
-                  whileTap={{scale: 0.92}}
-                  transition={LIQUID_SPRING_SNAPPY}
-                  disabled={activeMarkerIdx >= study.markers.length - 1}
-                  onClick={() => stepMarker(1)}
-                  aria-label="Next cut marker"
-                  className="brutal-button inline-flex h-11 w-11 sm:h-8 sm:w-8 items-center justify-center rounded-xl cursor-pointer disabled:opacity-35 disabled:cursor-not-allowed focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#7C3AED]"
-                >
-                  <ChevronRight className="w-3.5 h-3.5" />
-                </motion.button>
-              </div>
-            </div>
-            <HorizontalScrollFade className="flex items-center gap-2 pb-1 select-none">
-              {study.markers.map((marker) => {
-                const isSelected = marker.id === activeMarker.id;
+          <div className="border-t-[2.5px] border-[#09090B] pt-4 space-y-2.5">
+            <span className="block text-[10px] font-mono font-bold uppercase tracking-wider text-[#52525B]">
+              Select Marker Cue
+            </span>
+            <div className="flex flex-wrap gap-2">
+              {activeStudy.markers.map((marker) => {
+                const active = marker.id === activeMarker.id;
                 return (
-                  <motion.button
+                  <button
                     key={marker.id}
-                    ref={(el) => {
-                      markerButtonRefs.current[marker.id] = el;
-                    }}
                     type="button"
-                    whileTap={{scale: 0.95}}
-                    transition={LIQUID_SPRING_SNAPPY}
-                    onClick={() => setSelectedMarkerId(marker.id)}
-                    className={`inline-flex items-center gap-1.5 px-3 min-h-[44px] md:min-h-[40px] rounded-xl text-xs font-mono font-bold whitespace-nowrap shrink-0 cursor-pointer focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#7C3AED] ${
-                      isSelected ? 'brutal-cta' : 'brutal-button'
+                    onClick={() => {
+                      setSelectedMarkerId(marker.id);
+                      setSelectedClipId(null);
+                    }}
+                    className={`min-h-[38px] rounded-xl px-3 text-[11px] font-mono font-bold cursor-pointer ${
+                      active ? 'brutal-cta' : 'brutal-button'
                     }`}
                   >
-                    <Scissors className="w-3 h-3" />
-                    <span>{marker.timecode}</span>
-                    <span className="font-sans font-semibold">{marker.title}</span>
-                  </motion.button>
+                    {marker.timecode} · {marker.title}
+                  </button>
                 );
               })}
-            </HorizontalScrollFade>
+            </div>
           </div>
         </div>
       </div>
 
-      {/* Interactive Multi-Track NLE Timeline */}
-      <div
-        data-gsap="tl-nle"
-        tabIndex={0}
-        aria-label="Interactive multi-track edit timeline. Use Left and Right arrow keys to step between cut markers."
-        onKeyDown={(e) => {
-          if (e.key === 'ArrowLeft') {
-            e.preventDefault();
-            stepMarker(-1);
-          } else if (e.key === 'ArrowRight') {
-            e.preventDefault();
-            stepMarker(1);
-          }
-        }}
-        className="brutal-card-elevated rounded-3xl overflow-hidden focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#7C3AED]"
-      >
-        <HorizontalScrollFade>
-          <div className="min-w-[640px]">
-            <div className="grid grid-cols-[96px_1fr] border-b-[2.5px] border-[#09090B] bg-[#FFE600]">
-              <div className="px-3 py-2.5 text-[11px] font-mono font-bold text-[#09090B] border-r-[2.5px] border-[#09090B] flex items-center">
-                Tracks
-              </div>
-              <div className="relative px-3 py-2.5 flex items-center justify-between text-[11px] font-mono font-bold text-[#09090B] tabular-nums">
-                {study.rulerMarks.map((mark) => (
-                  <span key={mark}>{mark}</span>
-                ))}
-              </div>
-            </div>
+      {/* Multi-Track NLE Timeline Deck */}
+      <div data-gsap="tl-nle" className="brutal-card-elevated rounded-3xl overflow-hidden bg-white">
+        <div className="bg-[#FFE600] border-b-[2.5px] border-[#09090B] px-4 sm:px-5 py-3 flex flex-wrap items-center justify-between gap-2 text-[11px] font-mono font-bold text-[#09090B]">
+          <span className="inline-flex items-center gap-1.5">
+            <Sliders className="w-3.5 h-3.5 text-[#09090B]" strokeWidth={2.25} />
+            <span>{activeStudy.subtitle}</span>
+          </span>
+          <div className="hidden sm:flex items-center gap-4 tabular-nums">
+            {activeStudy.rulerMarks.map((mark) => (
+              <span key={mark}>{mark}</span>
+            ))}
+          </div>
+        </div>
 
-            <div className="relative divide-y-2 divide-[#09090B] bg-white">
-              {TRACK_ORDER.map((trackName) => {
-                const trackClips = study.clips.filter((c) => c.track === trackName);
-                const isAudio = trackName.startsWith('A');
+        <HorizontalScrollFade className="w-full">
+          <div className="relative min-w-[600px] bg-[#FFFDF5] p-3 sm:p-4">
+            <div className="flex flex-col gap-2.5">
+              {trackRows.map(({track, clips}) => {
+                const style = TRACK_ROW_STYLES[track];
                 return (
                   <div
-                    key={trackName}
+                    key={track}
                     data-gsap="tl-track"
-                    className="grid grid-cols-[96px_1fr] min-h-[52px]"
+                    className="grid grid-cols-12 items-center gap-2 min-h-[44px]"
                   >
-                    <div className="px-3 py-2 border-r-[2.5px] border-[#09090B] flex items-center justify-between text-xs bg-[#FFFDF5]">
-                      <span className="font-mono font-bold text-[#09090B]">{trackName}</span>
-                      <span className="text-[11px] font-medium text-zinc-700 flex items-center gap-1">
-                        <TrackKindIcon isAudio={isAudio} />
-                        {TRACK_LABELS[trackName]}
-                      </span>
+                    <div
+                      className={`col-span-1 text-[11px] font-mono font-bold text-center py-1.5 rounded-xl border-2 border-[#09090B] shadow-[2px_2px_0_#09090B] ${style.badgeBg}`}
+                    >
+                      {track}
                     </div>
 
-                    <div className="px-3 py-2 flex items-center bg-[#FFFDF5]/50">
-                      <div className="relative w-full h-8">
-                        {trackClips.map((clip) => {
-                          const isUnderPlayhead =
+                    <div className="col-span-11 relative h-10 rounded-xl bg-white border-2 border-[#09090B]/25">
+                      {clips.map((clip) => {
+                        const isCurrent =
+                          selectedClipId === clip.id ||
+                          (!selectedClipId &&
                             activeMarker.percent >= clip.startPercent &&
-                            activeMarker.percent <= clip.startPercent + clip.widthPercent;
-                          return (
-                            <motion.button
-                              key={clip.id}
-                              type="button"
-                              whileTap={{scale: 0.985}}
-                              transition={LIQUID_SPRING_SNAPPY}
-                              onClick={() => handleSelectClip(clip)}
-                              aria-label={`Inspect ${trackName} clip: ${clip.label}`}
-                              style={{
-                                left: `${clip.startPercent}%`,
-                                width: `${clip.widthPercent}%`,
-                              }}
-                              className={`absolute inset-y-0 rounded-lg border-2 px-2.5 flex items-center text-[11px] font-mono font-bold truncate text-left transition-all duration-[180ms] cursor-pointer focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-[#7C3AED] ${clipClasses(
-                                clip.track,
-                              )} ${
-                                isUnderPlayhead
-                                  ? 'ring-2 ring-[#7C3AED] ring-offset-1 opacity-100'
-                                  : 'opacity-85 hover:opacity-100'
-                              }`}
-                            >
-                              <span className="truncate">{clip.label}</span>
-                            </motion.button>
-                          );
-                        })}
-                      </div>
+                            activeMarker.percent <= clip.startPercent + clip.widthPercent);
+                        return (
+                          <button
+                            key={clip.id}
+                            type="button"
+                            onClick={() => {
+                              setSelectedClipId(clip.id);
+                              const nearestMarker = activeStudy.markers.reduce((best, m) =>
+                                Math.abs(m.percent - clip.startPercent) <
+                                Math.abs(best.percent - clip.startPercent)
+                                  ? m
+                                  : best,
+                              );
+                              setSelectedMarkerId(nearestMarker.id);
+                            }}
+                            style={{
+                              left: `${clip.startPercent}%`,
+                              width: `${clip.widthPercent}%`,
+                            }}
+                            className={`absolute top-1 bottom-1 rounded-lg px-2.5 text-left text-[11px] font-mono font-bold truncate transition-all cursor-pointer ${
+                              isCurrent ? style.activeClass : style.idleClass
+                            }`}
+                          >
+                            {clip.label}
+                          </button>
+                        );
+                      })}
                     </div>
                   </div>
                 );
               })}
+            </div>
 
-              <div className="pointer-events-none absolute inset-y-0 left-[96px] right-0 px-3">
-                <div className="relative w-full h-full">
-                  {study.markers.map((marker) => {
-                    const isSelected = marker.id === activeMarker.id;
-                    return (
-                      <button
-                        key={marker.id}
-                        type="button"
-                        onClick={() => setSelectedMarkerId(marker.id)}
-                        aria-label={`Inspect ${marker.timecode} ${marker.title}`}
-                        style={{left: `${marker.percent}%`}}
-                        className="pointer-events-auto absolute top-0 bottom-0 -translate-x-1/2 w-11 flex flex-col items-center group cursor-pointer focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-[#7C3AED]"
-                      >
-                        <span
-                          className={`mt-1 h-3 w-3 rotate-45 rounded-[2px] border-2 border-[#09090B] transition-transform ${
-                            isSelected
-                              ? 'bg-[#7C3AED] scale-125'
-                              : 'bg-white group-hover:bg-[#FFE600] group-hover:scale-110'
-                          }`}
-                        />
-                        <span
-                          className={`w-[2px] flex-1 transition-colors ${
-                            isSelected ? 'bg-[#7C3AED]' : 'bg-[#09090B]/20 group-hover:bg-[#7C3AED]/60'
-                          }`}
-                        />
-                      </button>
-                    );
-                  })}
-
-                  <motion.div
-                    aria-hidden="true"
-                    animate={{x: `${activeMarker.percent}%`}}
-                    transition={LIQUID_SPRING}
-                    className="absolute inset-0 pointer-events-none"
-                  >
-                    <div className="h-full w-[3px] -translate-x-1/2 bg-[#7C3AED]" />
-                  </motion.div>
+            {/* Electric Purple Playhead Indicator */}
+            <div
+              aria-hidden="true"
+              className="pointer-events-none absolute inset-x-3 sm:inset-x-4 inset-y-0 z-20 grid grid-cols-12 gap-2"
+            >
+              <div className="col-start-2 col-span-11 relative h-full">
+                <div
+                  data-timeline-playhead
+                  className="absolute top-0 bottom-0 w-[3px] -translate-x-1/2 bg-[#7C3AED] transition-[left] duration-300 ease-[cubic-bezier(0.22,1,0.36,1)]"
+                  style={{left: `${activeMarker.percent}%`}}
+                >
+                  <span className="absolute -top-1 left-1/2 -translate-x-1/2 w-3.5 h-3.5 rounded-full bg-[#FFE600] border-2 border-[#09090B]" />
                 </div>
               </div>
             </div>

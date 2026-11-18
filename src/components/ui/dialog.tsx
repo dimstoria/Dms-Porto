@@ -31,7 +31,7 @@ function DialogOverlay({
     <DialogPrimitive.Backdrop
       data-slot="dialog-overlay"
       className={cn(
-        "fixed inset-0 isolate z-50 bg-[#09090B]/60 duration-[240ms] ease-[cubic-bezier(0.22,1,0.36,1)] supports-backdrop-filter:backdrop-blur-[2px] data-open:animate-in data-open:fade-in-0 data-closed:animate-out data-closed:fade-out-0",
+        "fixed inset-0 isolate z-50 bg-[#09090B]/55 duration-[240ms] ease-[cubic-bezier(0.22,1,0.36,1)] supports-backdrop-filter:backdrop-blur-xs data-open:animate-in data-open:fade-in-0 data-closed:animate-out data-closed:fade-out-0",
         className
       )}
       {...props}
@@ -65,12 +65,12 @@ function DialogContent({
             render={
               <Button
                 variant="ghost"
-                className="brutal-button absolute top-2 right-2 rounded-xl"
+                className="brutal-button absolute top-2.5 right-2.5 rounded-xl bg-white text-[#09090B]"
                 size="icon-sm"
               />
             }
           >
-            <XIcon />
+            <XIcon strokeWidth={2} />
             <span className="sr-only">Close</span>
           </DialogPrimitive.Close>
         )}
@@ -101,7 +101,7 @@ function DialogFooter({
     <div
       data-slot="dialog-footer"
       className={cn(
-        "-mx-4 -mb-4 flex flex-col-reverse gap-2 rounded-b-xl border-t-[2.5px] border-[#09090B] bg-[#F4EFE0] p-4 sm:flex-row sm:justify-end",
+        "-mx-4 -mb-4 flex flex-col-reverse gap-2 rounded-b-xl border-t-[2.5px] border-[#09090B] bg-[#F5F0E1] p-4 sm:flex-row sm:justify-end",
         className
       )}
       {...props}
@@ -121,7 +121,7 @@ function DialogTitle({ className, ...props }: DialogPrimitive.Title.Props) {
     <DialogPrimitive.Title
       data-slot="dialog-title"
       className={cn(
-        "font-heading text-base leading-none font-medium",
+        "font-heading text-base leading-none font-bold text-[#09090B]",
         className
       )}
       {...props}
@@ -137,7 +137,7 @@ function DialogDescription({
     <DialogPrimitive.Description
       data-slot="dialog-description"
       className={cn(
-        "text-sm text-muted-foreground *:[a]:underline *:[a]:underline-offset-3 *:[a]:hover:text-foreground",
+        "text-sm text-[#3F3F46] *:[a]:underline *:[a]:underline-offset-3 *:[a]:hover:text-[#09090B]",
         className
       )}
       {...props}

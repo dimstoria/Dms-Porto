@@ -47,7 +47,7 @@ export function MarqueeStrip({
                 ease: 'linear',
               }
         }
-        className="flex w-max items-center gap-6 will-change-transform"
+        className="flex w-max items-center gap-6 pr-6 will-change-transform"
       >
         {track.map((text, idx) => (
           <div key={`${text}-${idx}`} className="inline-flex items-center gap-6 shrink-0">

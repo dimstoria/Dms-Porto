@@ -113,28 +113,28 @@ function MediaDropPicker({
       }}
       onDragLeave={() => setIsDragOver(false)}
       onDrop={handleDrop}
-      className={`rounded-xl p-3 space-y-2.5 transition-all ${
+      className={`rounded-2xl border-[2.5px] border-[#09090B] p-3.5 space-y-3 transition-all ${
         isDragOver
-          ? 'bg-[#FEF9C3] border-[2.5px] border-[#7C3AED] shadow-[4px_4px_0_#7C3AED]'
-          : 'brutal-subtle'
+          ? 'bg-[#FFE600] shadow-[5px_5px_0_#7C3AED]'
+          : 'bg-white shadow-[4px_4px_0_#09090B]'
       }`}
     >
       <div className="flex items-center justify-between gap-2">
-        <span className="text-xs font-display font-extrabold text-[#09090B]">{title}</span>
+        <span className="text-xs font-display font-bold text-[#09090B]">{title}</span>
         {resolved.isOverridden && (
           <button
             type="button"
             onClick={() => void resetSlot(slotKey)}
-            className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-[#FF4D8D] border-2 border-[#09090B] text-[10px] font-mono font-bold text-[#09090B] cursor-pointer hover:bg-[#FF6BA0]"
+            className="brutal-button inline-flex items-center gap-1 rounded-lg bg-[#FF4D8D] px-2.5 py-0.5 text-[10px] font-mono font-bold text-[#09090B] cursor-pointer"
           >
-            <RotateCcw className="w-3 h-3" />
+            <RotateCcw className="w-3 h-3" strokeWidth={2} />
             <span>Reset</span>
           </button>
         )}
       </div>
 
       {/* Calibrated dark neutral media preview frame */}
-      <div className="relative aspect-[16/9] w-full rounded-lg overflow-hidden bg-[#09090B] border-[2.5px] border-[#09090B]">
+      <div className="relative aspect-[16/9] w-full rounded-xl overflow-hidden bg-[#09090B] border-2 border-[#09090B]">
         {resolved.kind === 'video' ? (
           <video
             src={resolved.src}
@@ -156,7 +156,7 @@ function MediaDropPicker({
           />
         )}
         {resolved.isOverridden && (
-          <span className="absolute top-2 left-2 rounded-md bg-[#B8FF3B] border-2 border-[#09090B] shadow-[2px_2px_0_#09090B] px-2 py-0.5 text-[10px] font-mono font-bold text-[#09090B] uppercase">
+          <span className="absolute top-2 left-2 rounded-lg bg-[#B8FF3B] border-2 border-[#09090B] px-2 py-0.5 text-[10px] font-mono font-bold text-[#09090B] uppercase">
             Custom
           </span>
         )}
@@ -173,19 +173,19 @@ function MediaDropPicker({
       <button
         type="button"
         onClick={() => inputRef.current?.click()}
-        className="w-full flex items-center justify-center gap-2 rounded-xl border-2 border-dashed border-[#09090B] bg-white hover:bg-[#FEF9C3] py-2.5 px-3 text-xs font-sans font-bold text-[#09090B] transition-colors cursor-pointer"
+        className="w-full flex items-center justify-center gap-2 rounded-xl border-2 border-dashed border-[#09090B] bg-[#FFFDF5] hover:bg-[#FEF9C3] py-2.5 px-3 text-xs font-sans font-bold text-[#09090B] transition-colors cursor-pointer"
       >
-        <Upload className="w-3.5 h-3.5 text-[#7C3AED]" />
+        <Upload className="w-3.5 h-3.5 text-[#7C3AED]" strokeWidth={2.25} />
         <span>Upload Foto / Video</span>
       </button>
 
       {resolved.fileName && (
-        <p className="text-[11px] font-mono font-bold text-[#09090B] bg-[#B8FF3B] border border-[#09090B] rounded px-2 py-0.5 truncate">
+        <p className="text-[11px] font-mono font-bold text-[#09090B] bg-[#B8FF3B] border-2 border-[#09090B] rounded-lg px-2.5 py-1 truncate">
           File: {resolved.fileName}
         </p>
       )}
 
-      <div className="flex items-center gap-1.5">
+      <div className="flex items-center gap-2">
         <input
           type="url"
           value={urlDraft}
@@ -194,12 +194,12 @@ function MediaDropPicker({
             if (e.key === 'Enter') handleApplyUrl();
           }}
           placeholder="Paste URL foto / .mp4..."
-          className="brutal-input flex-1 h-10 sm:h-8 px-2.5 rounded-lg text-base sm:text-xs font-sans font-semibold focus:outline-none"
+          className="brutal-input flex-1 h-10 sm:h-8 px-3 rounded-xl text-base sm:text-xs font-sans focus:outline-none"
         />
         <button
           type="button"
           onClick={handleApplyUrl}
-          className="brutal-cta h-10 sm:h-8 px-3 rounded-lg text-xs font-mono font-bold cursor-pointer shrink-0 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#7C3AED]"
+          className="brutal-cta h-10 sm:h-8 rounded-xl px-3.5 text-xs font-mono font-bold cursor-pointer shrink-0 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#7C3AED]"
         >
           URL
         </button>
@@ -259,13 +259,21 @@ function SlotEditorCard({
     }
   }, [isFocused]);
 
+  const filmId = film?.id;
+  const videoModeKind = videoMode?.mode;
+  const videoModeYtId = videoMode?.youtubeId;
+  const videoModeYtStart = videoMode?.youtubeStartSeconds;
+
   useEffect(() => {
-    if (!film || !videoMode) return;
-    if (videoMode.mode === 'youtube') {
-      setYtInput(videoMode.youtubeId ?? '');
-      setYtStartSec(String(videoMode.youtubeStartSeconds ?? 0));
+    if (!filmId) return;
+    if (videoModeKind !== 'youtube') {
+      setYtInput('');
+      setYtStartSec('');
+      return;
     }
-  }, [film, videoMode]);
+    setYtInput(videoModeYtId ?? '');
+    setYtStartSec(String(videoModeYtStart ?? 0));
+  }, [filmId, videoModeKind, videoModeYtId, videoModeYtStart]);
 
   const handleMediaFileChange = async (e: ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -317,14 +325,14 @@ function SlotEditorCard({
       }}
       onDragLeave={() => setIsDragOver(false)}
       onDrop={handleDrop}
-      className={`rounded-2xl transition-all duration-150 ${
-        isFocused ? 'md:col-span-2' : ''
+      className={`rounded-2xl border-[2.5px] border-[#09090B] transition-all duration-150 ${
+        isFocused ? 'md:col-span-2 shadow-[6px_6px_0_#09090B] bg-[#FEF9C3]' : ''
       } ${
         isDragOver
-          ? 'bg-[#FEF9C3] border-[3px] border-[#7C3AED] shadow-[6px_6px_0_#7C3AED]'
-          : isFocused
-            ? 'brutal-card-elevated bg-white'
-            : 'brutal-card hover:bg-[#FFFBEB]'
+          ? 'bg-[#FFE600] shadow-[6px_6px_0_#7C3AED]'
+          : !isFocused
+            ? 'bg-white shadow-[4px_4px_0_#09090B] hover:-translate-x-0.5 hover:-translate-y-0.5'
+            : ''
       }`}
     >
       {/* Card Summary Row */}
@@ -358,7 +366,7 @@ function SlotEditorCard({
             />
           )}
           {resolved.kind === 'video' && (
-            <span className="absolute bottom-1 right-1 rounded bg-[#FFE600] border border-[#09090B] px-1.5 py-0.5 text-[9px] font-mono font-bold text-[#09090B]">
+            <span className="absolute bottom-1 right-1 rounded bg-[#FFE600] border border-[#09090B] px-1 py-0.5 text-[9px] font-mono font-bold text-[#09090B]">
               VID
             </span>
           )}
@@ -366,16 +374,16 @@ function SlotEditorCard({
 
         <div className="min-w-0 flex-1">
           <div className="flex items-center gap-2">
-            <p className="text-sm font-display font-extrabold tracking-tight text-[#09090B] truncate">
+            <p className="text-sm font-display font-bold tracking-tight text-[#09090B] truncate">
               {slot.title}
             </p>
             {hasAnyOverride && (
-              <span className="inline-flex items-center px-1.5 py-0.5 rounded bg-[#B8FF3B] border border-[#09090B] text-[9px] font-mono font-bold text-[#09090B] uppercase shrink-0">
+              <span className="inline-flex items-center px-2 py-0.5 rounded-lg bg-[#B8FF3B] border border-[#09090B] text-[9px] font-mono font-bold text-[#09090B] uppercase shrink-0">
                 Edited
               </span>
             )}
           </div>
-          <p className="text-xs font-sans font-medium text-[#3F3F46] truncate mt-0.5">
+          <p className="text-xs font-sans text-[#3F3F46] truncate mt-0.5">
             {slot.description}
           </p>
         </div>
@@ -384,14 +392,14 @@ function SlotEditorCard({
           className={`w-4 h-4 text-[#09090B] shrink-0 transition-transform ${
             isFocused ? 'rotate-180 text-[#7C3AED]' : ''
           }`}
+          strokeWidth={2.25}
         />
       </div>
 
       {/* Expanded Editor */}
       {isFocused && (
-        <div className="px-4 pb-4 pt-3 border-t-2 border-[#09090B] space-y-4">
+        <div className="px-4 pb-4 pt-3.5 border-t-[2.5px] border-[#09090B] bg-white rounded-b-2xl space-y-4">
           {isGradePair ? (
-            /* Single Card with Both Log (Before) & Graded (After) Upload Pickers */
             <div className="grid grid-cols-1 md:grid-cols-2 gap-3.5">
               <MediaDropPicker
                 title="1. Upload Log (Before)"
@@ -406,20 +414,19 @@ function SlotEditorCard({
               />
             </div>
           ) : (
-            /* Standard 1 Photo or 1 Video Picker */
             <div className="space-y-2.5">
               <div className="flex items-center justify-between">
-                <span className="text-xs font-display font-extrabold text-[#09090B] flex items-center gap-1.5">
-                  <ImageIcon className="w-3.5 h-3.5 text-[#7C3AED]" />
+                <span className="text-xs font-display font-bold text-[#09090B] flex items-center gap-1.5">
+                  <ImageIcon className="w-3.5 h-3.5 text-[#7C3AED]" strokeWidth={2} />
                   <span>Pilih 1 Foto atau 1 Video (.mp4 / .webm)</span>
                 </span>
                 {resolved.isOverridden && (
                   <button
                     type="button"
                     onClick={() => void resetSlot(slot.slotKey)}
-                    className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-[#FF4D8D] border-2 border-[#09090B] text-[11px] font-mono font-bold text-[#09090B] hover:bg-[#FF6BA0] cursor-pointer"
+                    className="brutal-button inline-flex items-center gap-1 rounded-lg bg-[#FF4D8D] px-2.5 py-0.5 text-[11px] font-mono font-bold text-[#09090B] cursor-pointer"
                   >
-                    <RotateCcw className="w-3 h-3" />
+                    <RotateCcw className="w-3 h-3" strokeWidth={2} />
                     <span>Reset</span>
                   </button>
                 )}
@@ -436,9 +443,9 @@ function SlotEditorCard({
               <button
                 type="button"
                 onClick={() => fileInputRef.current?.click()}
-                className="w-full flex items-center justify-center gap-2 rounded-xl border-2 border-dashed border-[#09090B] bg-[#FFFDF5] hover:bg-[#FEF9C3] py-3 px-4 text-xs font-sans font-bold text-[#09090B] transition-colors cursor-pointer"
+                className="w-full flex items-center justify-center gap-2 rounded-xl border-2 border-dashed border-[#09090B] bg-[#FFFDF5] hover:bg-[#FFE600] py-3 px-4 text-xs font-sans font-bold text-[#09090B] transition-colors cursor-pointer"
               >
-                <Upload className="w-3.5 h-3.5 text-[#7C3AED]" />
+                <Upload className="w-3.5 h-3.5 text-[#7C3AED]" strokeWidth={2.25} />
                 <span>Upload 1 Foto / Video dari perangkat atau drop ke sini</span>
               </button>
 
@@ -450,7 +457,7 @@ function SlotEditorCard({
 
               <div className="flex items-center gap-2">
                 <div className="relative flex-1">
-                  <Link2 className="w-3.5 h-3.5 text-[#52525B] absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" />
+                  <Link2 className="w-3.5 h-3.5 text-[#52525B] absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" strokeWidth={2} />
                   <input
                     type="url"
                     value={urlDraft}
@@ -459,13 +466,13 @@ function SlotEditorCard({
                       if (e.key === 'Enter') handleApplyUrl();
                     }}
                     placeholder="Paste URL foto atau video .mp4..."
-                    className="brutal-input w-full h-10 sm:h-9 pl-9 pr-3 rounded-xl text-base sm:text-xs font-sans font-semibold focus:outline-none"
+                    className="brutal-input w-full h-10 sm:h-9 pl-9 pr-3 rounded-xl text-base sm:text-xs font-sans focus:outline-none"
                   />
                 </div>
                 <button
                   type="button"
                   onClick={handleApplyUrl}
-                  className="brutal-cta h-10 sm:h-9 px-4 rounded-xl text-xs font-mono font-bold cursor-pointer shrink-0 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#7C3AED]"
+                  className="brutal-cta h-10 sm:h-9 rounded-xl px-4 text-xs font-mono font-bold cursor-pointer shrink-0 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#7C3AED]"
                 >
                   Pakai URL
                 </button>
@@ -473,24 +480,23 @@ function SlotEditorCard({
             </div>
           )}
 
-          {/* Avatar Framing Sliders */}
           {isAvatar && (
-            <div className="brutal-subtle p-3.5 rounded-xl space-y-3">
+            <div className="brutal-subtle p-3.5 rounded-2xl space-y-3">
               <div className="flex items-center justify-between">
-                <span className="text-xs font-display font-extrabold text-[#09090B] flex items-center gap-1.5">
-                  <Sliders className="w-3.5 h-3.5 text-[#7C3AED]" />
+                <span className="text-xs font-display font-bold text-[#09090B] flex items-center gap-1.5">
+                  <Sliders className="w-3.5 h-3.5 text-[#7C3AED]" strokeWidth={2} />
                   <span>Framing Foto Profil</span>
                 </span>
                 <button
                   type="button"
                   onClick={resetAvatarFrame}
-                  className="rounded-md px-2 py-0.5 bg-white border-2 border-[#09090B] text-xs font-mono font-bold text-[#09090B] hover:bg-[#FFE600] cursor-pointer focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#7C3AED]"
+                  className="brutal-button rounded-lg bg-white px-2.5 py-0.5 text-xs font-mono font-bold cursor-pointer"
                 >
                   Reset posisi
                 </button>
               </div>
 
-              <div className="grid grid-cols-1 sm:grid-cols-12 gap-3 text-xs font-mono font-bold text-[#27272A]">
+              <div className="grid grid-cols-1 sm:grid-cols-12 gap-3 text-xs font-mono font-bold text-[#3F3F46]">
                 <label className="sm:col-span-6 space-y-1">
                   <span className="flex justify-between">
                     <span>Zoom</span>
@@ -549,35 +555,34 @@ function SlotEditorCard({
               <button
                 type="button"
                 onClick={() => setAvatarFrame({scale: 1, posX: 50, posY: 50})}
-                className="brutal-button w-full py-2 rounded-xl text-xs font-mono font-bold cursor-pointer focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#7C3AED]"
+                className="brutal-button w-full rounded-xl bg-white py-2 text-xs font-mono font-bold cursor-pointer"
               >
                 Fit Standar ({DEFAULT_AVATAR_FRAME.scale}x default)
               </button>
             </div>
           )}
 
-          {/* Optional YouTube embed override for Showreel & Works */}
           {film && (
-            <div className="brutal-subtle p-3.5 rounded-xl space-y-2.5">
+            <div className="brutal-subtle p-3.5 rounded-2xl space-y-2.5">
               <div className="flex items-center justify-between gap-2">
-                <span className="text-xs font-display font-extrabold text-[#09090B] flex items-center gap-1.5">
-                  <Youtube className="w-3.5 h-3.5 text-[#E11D48]" />
+                <span className="text-xs font-display font-bold text-[#09090B] flex items-center gap-1.5">
+                  <Youtube className="w-3.5 h-3.5 text-[#FF4D8D]" strokeWidth={2.25} />
                   <span>Opsional: Link YouTube saat diputar</span>
                 </span>
                 {videoMode && videoMode.mode !== 'default' && (
                   <button
                     type="button"
                     onClick={() => void clearFilmVideoOverride(film.id)}
-                    className="inline-flex items-center gap-1 rounded-md px-2 py-0.5 bg-[#FF4D8D] border-2 border-[#09090B] text-xs font-mono font-bold text-[#09090B] hover:bg-[#FF6BA0] cursor-pointer focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#09090B]"
+                    className="brutal-button inline-flex items-center gap-1 rounded-lg bg-[#FF4D8D] px-2.5 py-0.5 text-xs font-mono font-bold text-[#09090B] cursor-pointer"
                   >
-                    <RotateCcw className="w-3 h-3" />
+                    <RotateCcw className="w-3 h-3" strokeWidth={2} />
                     <span>Reset YT</span>
                   </button>
                 )}
               </div>
 
               {videoMode?.mode === 'youtube' && (
-                <p className="text-xs font-mono font-bold text-[#09090B] bg-[#B8FF3B] border border-[#09090B] rounded px-2 py-0.5 truncate">
+                <p className="text-xs font-mono font-bold text-[#09090B] bg-[#B8FF3B] border-2 border-[#09090B] rounded-lg px-2.5 py-1 truncate">
                   YouTube aktif: {videoMode.youtubeId} (mulai {videoMode.youtubeStartSeconds ?? 0}s)
                 </p>
               )}
@@ -591,7 +596,7 @@ function SlotEditorCard({
                     if (e.key === 'Enter') handleApplyYouTube();
                   }}
                   placeholder="Link YouTube atau Video ID..."
-                  className="brutal-input flex-1 h-10 sm:h-9 px-3 rounded-xl text-base sm:text-xs font-sans font-semibold focus:outline-none"
+                  className="brutal-input flex-1 h-10 sm:h-9 px-3.5 rounded-xl text-base sm:text-xs font-sans focus:outline-none"
                 />
                 <input
                   type="number"
@@ -600,12 +605,12 @@ function SlotEditorCard({
                   onChange={(e) => setYtStartSec(e.target.value)}
                   placeholder="Detik"
                   title="Mulai dari detik ke- (opsional)"
-                  className="brutal-input w-20 h-10 sm:h-9 px-2.5 rounded-xl text-base sm:text-xs font-mono font-bold focus:outline-none"
+                  className="brutal-input w-20 h-10 sm:h-9 px-3 rounded-xl text-base sm:text-xs font-mono font-bold focus:outline-none"
                 />
                 <button
                   type="button"
                   onClick={handleApplyYouTube}
-                  className="brutal-cta h-10 sm:h-9 px-3.5 rounded-xl text-xs font-mono font-bold cursor-pointer shrink-0 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#7C3AED]"
+                  className="brutal-cta-purple h-10 sm:h-9 rounded-xl px-4 text-xs font-mono font-bold cursor-pointer shrink-0"
                 >
                   Set YT
                 </button>
@@ -628,7 +633,6 @@ export function DevMediaDrawer() {
     setDrawerOpen,
     focusedSlotKey,
     focusVersion,
-    openSlotEditor,
     overrideCount,
     resetAll,
     exportConfigJson,
@@ -670,7 +674,7 @@ export function DevMediaDrawer() {
       setSelectedKey(focusedSlotKey);
       const slot = DEV_MEDIA_SLOTS.find((s) => s.slotKey === focusedSlotKey);
       if (slot) {
-        setActiveTab('all');
+        setActiveTab(slot.section);
       }
     }
   }, [focusedSlotKey, focusVersion]);
@@ -752,15 +756,17 @@ export function DevMediaDrawer() {
             animate={{opacity: 1, y: 0, scale: 1}}
             exit={{opacity: 0, y: 10, scale: 0.96}}
             transition={CUBIC_TACTILE}
-            className="fixed bottom-16 md:bottom-5 right-4 z-40 flex items-center gap-2"
+            className="fixed bottom-[calc(4.6rem+env(safe-area-inset-bottom))] md:bottom-6 left-3 md:left-6 z-40 flex items-center gap-2"
           >
             <button
               type="button"
               onClick={() => setDrawerOpen(true)}
-              className="brutal-cta inline-flex items-center gap-2 min-h-[44px] sm:min-h-0 rounded-xl px-4 py-2.5 text-xs font-mono font-bold cursor-pointer focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#7C3AED]"
+              className="brutal-cta inline-flex items-center gap-1.5 sm:gap-2 min-h-[46px] sm:min-h-[42px] rounded-2xl px-3 sm:px-4 py-2 text-xs font-mono font-bold cursor-pointer"
             >
-              <Code2 className="w-3.5 h-3.5" />
-              <span>Media Studio ({overrideCount})</span>
+              <Code2 className="w-3.5 h-3.5 shrink-0" strokeWidth={2.25} />
+              <span>
+                <span className="hidden sm:inline">Media </span>Studio ({overrideCount})
+              </span>
             </button>
             <button
               type="button"
@@ -770,9 +776,9 @@ export function DevMediaDrawer() {
               }}
               aria-label="Matikan badge edit"
               title="Sembunyikan badge edit di UI"
-              className="brutal-button inline-flex h-11 w-11 sm:h-10 sm:w-10 items-center justify-center rounded-xl cursor-pointer focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#7C3AED]"
+              className="brutal-button inline-flex h-[46px] w-[46px] sm:h-[42px] sm:w-[42px] items-center justify-center rounded-2xl bg-[#FF4D8D] text-[#09090B] cursor-pointer"
             >
-              <X className="w-4 h-4" />
+              <X className="w-4 h-4" strokeWidth={2.25} />
             </button>
           </motion.div>
         )}
@@ -781,36 +787,35 @@ export function DevMediaDrawer() {
       <Dialog open={drawerOpen} onOpenChange={setDrawerOpen}>
         <DialogContent
           showCloseButton={false}
-          className="sm:max-w-4xl overflow-hidden p-0 rounded-3xl bg-[#FFFDF5] text-[#09090B]"
+          className="sm:max-w-4xl overflow-hidden p-0 rounded-3xl bg-[#FFFDF5] bg-brutal-grid border-[3px] border-[#09090B] shadow-[8px_8px_0_#09090B] text-[#09090B]"
         >
           <DialogClose
             render={
               <button
                 type="button"
                 aria-label="Close Media Studio modal"
-                className="brutal-button absolute top-3.5 right-3.5 z-20 inline-flex h-11 w-11 sm:h-10 sm:w-10 items-center justify-center rounded-xl cursor-pointer focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#7C3AED]"
+                className="brutal-button absolute top-3.5 right-3.5 z-20 inline-flex h-11 w-11 sm:h-10 sm:w-10 items-center justify-center rounded-xl bg-[#FF4D8D] text-[#09090B] cursor-pointer"
               />
             }
           >
-            <X className="w-4 h-4" />
+            <X className="w-4 h-4" strokeWidth={2.25} />
           </DialogClose>
 
           <VerticalScrollFade className="max-h-[90dvh]">
-            <div className="p-5 sm:p-8 space-y-6 bg-[#FFFDF5]">
+            <div className="p-5 sm:p-8 space-y-6">
               <DialogHeader className="space-y-3 pr-12">
                 <div className="flex flex-wrap items-center justify-between gap-3">
-                  <div className="inline-flex items-center gap-2 px-3 py-1 rounded-lg bg-[#7C3AED] text-white border-2 border-[#09090B] shadow-[3px_3px_0_#09090B] text-xs font-mono font-bold">
-                    <Code2 className="w-3.5 h-3.5" />
-                    <span>Studio Owner · {overrideCount} Edited</span>
-                  </div>
+                  <span className="inline-flex items-center px-3 py-1 rounded-full bg-[#FFE600] border-2 border-[#09090B] shadow-[2px_2px_0_#09090B] text-xs font-mono font-bold text-[#09090B]">
+                    Studio Owner · {overrideCount} Edited
+                  </span>
 
                   <div className="flex flex-wrap items-center gap-2">
                     <button
                       type="button"
                       onClick={handleExportJson}
-                      className="brutal-button inline-flex items-center gap-1.5 h-10 sm:h-8 px-3 rounded-xl text-xs font-mono font-bold cursor-pointer focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#7C3AED]"
+                      className="brutal-button inline-flex items-center gap-1.5 h-10 sm:h-8 rounded-xl bg-white px-3.5 text-xs font-mono font-bold cursor-pointer"
                     >
-                      <Download className="w-3.5 h-3.5" />
+                      <Download className="w-3.5 h-3.5 text-[#7C3AED]" strokeWidth={2} />
                       <span>Export</span>
                     </button>
 
@@ -824,9 +829,9 @@ export function DevMediaDrawer() {
                     <button
                       type="button"
                       onClick={() => importInputRef.current?.click()}
-                      className="brutal-button inline-flex items-center gap-1.5 h-10 sm:h-8 px-3 rounded-xl text-xs font-mono font-bold cursor-pointer focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#7C3AED]"
+                      className="brutal-button inline-flex items-center gap-1.5 h-10 sm:h-8 rounded-xl bg-white px-3.5 text-xs font-mono font-bold cursor-pointer"
                     >
-                      <Upload className="w-3.5 h-3.5" />
+                      <Upload className="w-3.5 h-3.5 text-[#7C3AED]" strokeWidth={2} />
                       <span>Import</span>
                     </button>
 
@@ -834,9 +839,9 @@ export function DevMediaDrawer() {
                       <button
                         type="button"
                         onClick={() => void resetAll()}
-                        className="brutal-cta-pink inline-flex items-center gap-1.5 h-10 sm:h-8 px-3 rounded-xl text-xs font-mono font-bold cursor-pointer focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#09090B]"
+                        className="brutal-button inline-flex items-center gap-1.5 h-10 sm:h-8 rounded-xl bg-[#FF4D8D] px-3.5 text-xs font-mono font-bold text-[#09090B] cursor-pointer"
                       >
-                        <RotateCcw className="w-3.5 h-3.5" />
+                        <RotateCcw className="w-3.5 h-3.5" strokeWidth={2} />
                         <span>Reset Semua</span>
                       </button>
                     )}
@@ -847,9 +852,9 @@ export function DevMediaDrawer() {
                         setDrawerOpen(false);
                         setDevMode(false);
                       }}
-                      className="brutal-button inline-flex items-center gap-1.5 h-10 sm:h-8 px-3 rounded-xl text-xs font-mono font-bold cursor-pointer focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#7C3AED]"
+                      className="brutal-button inline-flex items-center gap-1.5 h-10 sm:h-8 rounded-xl bg-[#FEF9C3] px-3.5 text-xs font-mono font-bold cursor-pointer"
                     >
-                      <Power className="w-3.5 h-3.5" />
+                      <Power className="w-3.5 h-3.5 text-[#09090B]" strokeWidth={2} />
                       <span>Matikan Dev Mode</span>
                     </button>
                   </div>
@@ -858,17 +863,17 @@ export function DevMediaDrawer() {
                 <DialogTitle className="text-2xl sm:text-3xl font-display font-extrabold tracking-tight text-[#09090B]">
                   Dev Mode Media Studio
                 </DialogTitle>
-                <DialogDescription className="text-sm font-sans font-medium text-[#27272A] max-w-2xl leading-relaxed">
+                <DialogDescription className="text-sm font-sans text-[#3F3F46] max-w-2xl leading-relaxed">
                   Pilih slot di bawah untuk mengganti media. Khusus kartu Color Log sudah langsung berisi pilihan Upload Log (Before) dan Upload Graded (After) dalam satu kartu.
                 </DialogDescription>
               </DialogHeader>
 
-              <div className="border-t-2 border-[#09090B] pt-5 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+              <div className="border-t-[2.5px] border-[#09090B] pt-5 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
                 <HorizontalScrollFade className="max-w-full">
                   <div
                     role="tablist"
                     aria-label="Filter slot media"
-                    className="brutal-card bg-white inline-flex items-center gap-1 p-1.5 rounded-xl w-max"
+                    className="brutal-card inline-flex items-center gap-1.5 p-1.5 rounded-2xl w-max bg-white"
                   >
                     {SECTION_TABS.map((tab) => {
                       const active = activeTab === tab.id;
@@ -879,10 +884,10 @@ export function DevMediaDrawer() {
                           role="tab"
                           aria-selected={active}
                           onClick={() => setActiveTab(tab.id)}
-                          className={`px-3.5 min-h-[44px] sm:min-h-[36px] rounded-lg text-xs font-mono font-bold whitespace-nowrap transition-colors cursor-pointer focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#7C3AED] ${
+                          className={`px-3.5 min-h-[44px] sm:min-h-[34px] rounded-xl text-xs font-mono font-bold whitespace-nowrap transition-colors cursor-pointer ${
                             active
-                              ? 'bg-[#FFE600] text-[#09090B] border-2 border-[#09090B] shadow-[2px_2px_0_#09090B]'
-                              : 'text-[#3F3F46] hover:text-[#09090B] border-2 border-transparent'
+                              ? 'bg-[#7C3AED] text-white border-2 border-[#09090B] shadow-[2px_2px_0_#09090B]'
+                              : 'text-[#09090B] hover:bg-[#FEF9C3]'
                           }`}
                         >
                           {tab.label}
@@ -892,7 +897,7 @@ export function DevMediaDrawer() {
                   </div>
                 </HorizontalScrollFade>
 
-                <span className="inline-flex items-center px-3 py-1 rounded-lg bg-[#FEF9C3] border-2 border-[#09090B] text-xs font-mono font-bold text-[#09090B] shrink-0 tabular-nums">
+                <span className="text-xs font-mono font-bold text-[#09090B] shrink-0 tabular-nums">
                   {activeTab === 'inbox'
                     ? `${inquiries.length} Brief Masuk`
                     : `${visibleSlots.length} Slot Tersedia`}
@@ -902,24 +907,27 @@ export function DevMediaDrawer() {
               {activeTab === 'inbox' ? (
                 <div className="space-y-3.5">
                   <div className="flex items-center justify-between gap-3">
-                    <p className="text-xs font-sans font-medium text-[#27272A]">
+                    <p className="text-xs font-sans font-medium text-[#3F3F46]">
                       Semua Project Brief dari pengunjung tersimpan otomatis di server.
                     </p>
                     <button
                       type="button"
                       onClick={() => void fetchInquiries()}
                       disabled={inquiriesLoading}
-                      className="brutal-button inline-flex items-center gap-1.5 h-9 px-3.5 rounded-xl text-xs font-mono font-bold cursor-pointer disabled:opacity-50"
+                      className="brutal-button inline-flex items-center gap-1.5 h-9 rounded-xl bg-white px-4 text-xs font-mono font-bold cursor-pointer disabled:opacity-50"
                     >
-                      <RefreshCw className={`w-3.5 h-3.5 ${inquiriesLoading ? 'animate-spin' : ''}`} />
+                      <RefreshCw
+                        className={`w-3.5 h-3.5 text-[#7C3AED] ${inquiriesLoading ? 'animate-spin' : ''}`}
+                        strokeWidth={2}
+                      />
                       <span>Refresh</span>
                     </button>
                   </div>
 
                   {inquiries.length === 0 ? (
-                    <div className="brutal-card bg-white rounded-2xl p-8 text-center space-y-2">
-                      <Inbox className="w-7 h-7 text-[#7C3AED] mx-auto" />
-                      <p className="text-sm font-display font-extrabold text-[#09090B]">
+                    <div className="brutal-card rounded-2xl bg-white p-8 text-center space-y-2">
+                      <Inbox className="w-7 h-7 text-[#7C3AED] mx-auto" strokeWidth={2} />
+                      <p className="text-sm font-display font-bold text-[#09090B]">
                         Belum ada brief masuk
                       </p>
                       <p className="text-xs font-sans text-[#3F3F46]">
@@ -931,22 +939,22 @@ export function DevMediaDrawer() {
                       {inquiries.map((item) => (
                         <div
                           key={item.id}
-                          className="brutal-card bg-white rounded-2xl p-4 sm:p-5 space-y-3"
+                          className="brutal-card rounded-2xl bg-white p-4 sm:p-5 space-y-3"
                         >
                           <div className="flex flex-wrap items-start justify-between gap-3">
                             <div className="space-y-1 min-w-0">
                               <div className="flex items-center gap-2 flex-wrap">
-                                <h3 className="text-sm font-display font-extrabold text-[#09090B]">
+                                <h3 className="text-sm font-display font-bold text-[#09090B]">
                                   {item.name}
                                 </h3>
-                                <span className="px-2 py-0.5 rounded-md bg-[#FFE600] border border-[#09090B] text-[11px] font-mono font-bold text-[#09090B]">
-                                  {item.scope}
+                                <span className="text-xs font-mono font-bold text-[#7C3AED]">
+                                  · {item.scope}
                                 </span>
                                 <span
-                                  className={`px-2 py-0.5 rounded-md border border-[#09090B] text-[10px] font-mono font-bold uppercase ${
+                                  className={`px-2 py-0.5 rounded-lg border-2 border-[#09090B] text-[10px] font-mono font-bold uppercase ${
                                     item.status === 'reviewed'
-                                      ? 'bg-[#B8FF3B] text-[#09090B]'
-                                      : 'bg-[#FF4D8D] text-[#09090B]'
+                                      ? 'bg-[#F3E8FF] text-[#7C3AED]'
+                                      : 'bg-[#B8FF3B] text-[#09090B]'
                                   }`}
                                 >
                                   {item.status === 'reviewed' ? 'Reviewed' : 'New'}
@@ -960,26 +968,26 @@ export function DevMediaDrawer() {
                             <div className="flex items-center gap-2">
                               <a
                                 href={`mailto:${item.email}?subject=${encodeURIComponent(`Re: [dms porto] ${item.scope}`)}`}
-                                className="brutal-cta inline-flex items-center gap-1 h-8 px-3 rounded-lg text-xs font-mono font-bold"
+                                className="brutal-cta inline-flex items-center gap-1 h-8 rounded-xl px-3.5 text-xs font-mono font-bold"
                               >
-                                <Mail className="w-3 h-3" />
+                                <Mail className="w-3 h-3" strokeWidth={2} />
                                 <span>Reply</span>
                               </a>
                               <button
                                 type="button"
                                 onClick={() => void handleToggleInquiryStatus(item)}
-                                className="brutal-button inline-flex items-center gap-1 h-8 px-3 rounded-lg text-xs font-mono font-bold cursor-pointer"
+                                className="brutal-button inline-flex items-center gap-1 h-8 rounded-xl bg-white px-3 text-xs font-mono font-bold cursor-pointer"
                               >
-                                <CheckCircle2 className="w-3 h-3 text-[#7C3AED]" />
+                                <CheckCircle2 className="w-3 h-3 text-[#7C3AED]" strokeWidth={2} />
                                 <span>{item.status === 'new' ? 'Tandai Dibaca' : 'Tandai Baru'}</span>
                               </button>
                               <button
                                 type="button"
                                 onClick={() => void handleDeleteInquiry(item.id)}
                                 aria-label="Hapus brief"
-                                className="brutal-cta-pink inline-flex items-center justify-center h-8 w-8 rounded-lg cursor-pointer"
+                                className="brutal-button inline-flex items-center justify-center h-8 w-8 rounded-xl bg-[#FF4D8D] text-[#09090B] cursor-pointer"
                               >
-                                <Trash2 className="w-3.5 h-3.5" />
+                                <Trash2 className="w-3.5 h-3.5" strokeWidth={2} />
                               </button>
                             </div>
                           </div>
@@ -1000,12 +1008,7 @@ export function DevMediaDrawer() {
                       slot={slot}
                       isFocused={selectedKey === slot.slotKey}
                       onSelectFocus={(key) => {
-                        if (!key) {
-                          setSelectedKey('');
-                        } else {
-                          setSelectedKey(key);
-                          openSlotEditor(key);
-                        }
+                        setSelectedKey(key);
                       }}
                     />
                   ))}

@@ -1,9 +1,10 @@
 import {type FormEvent} from 'react';
-import {Check} from 'lucide-react';
+import {Check, X} from 'lucide-react';
 import {AnimatePresence, motion} from 'motion/react';
 import {CUBIC_MICRO, LIQUID_SPRING_SNAPPY} from '../lib/motion';
 import {
   Sheet,
+  SheetClose,
   SheetContent,
   SheetDescription,
   SheetHeader,
@@ -60,18 +61,30 @@ export function MobileBookingSheet({
     <Sheet open={open} onOpenChange={onOpenChange}>
       <SheetContent
         side="bottom"
+        showCloseButton={false}
         className="rounded-t-3xl p-0 max-h-[88dvh] flex flex-col overflow-hidden pb-[env(safe-area-inset-bottom)] bg-[#FFFDF5]"
       >
-        <div className="pt-2 pb-1 shrink-0">
-          <div aria-hidden="true" className="w-12 h-2 bg-[#09090B] rounded-full mx-auto my-2" />
+        <div className="relative px-4 py-2.5 shrink-0 bg-[#FFE600] border-b-[2.5px] border-[#09090B] flex items-center justify-center">
+          <div aria-hidden="true" className="w-12 h-1.5 bg-[#09090B]/35 rounded-full" />
+          <SheetClose
+            render={
+              <button
+                type="button"
+                aria-label="Close booking form"
+                className="brutal-button absolute right-3 top-1/2 -translate-y-1/2 inline-flex h-8 w-8 items-center justify-center rounded-xl bg-white text-[#09090B] cursor-pointer"
+              />
+            }
+          >
+            <X className="w-4 h-4" strokeWidth={2.25} />
+          </SheetClose>
         </div>
 
-        <VerticalScrollFade className="flex-1 min-h-0 px-5 pb-7">
+        <VerticalScrollFade className="flex-1 min-h-0 px-5 pt-4 pb-7">
           <SheetHeader className="p-0 text-left mb-5 space-y-1">
             <SheetTitle className="font-display text-2xl font-extrabold tracking-tight text-[#09090B]">
               Send Project Brief
             </SheetTitle>
-            <SheetDescription className="text-xs font-medium text-zinc-700">
+            <SheetDescription className="text-xs font-sans text-[#3F3F46]">
               Share your shoot dates or editing timeline. Typical response within 24 hours.
             </SheetDescription>
           </SheetHeader>
@@ -91,11 +104,11 @@ export function MobileBookingSheet({
                 aria-describedby={formErrors.name ? 'mobile-inquiry-name-error' : undefined}
                 placeholder="Your name"
                 className={`brutal-input w-full h-11 rounded-xl px-3.5 text-base sm:text-sm focus:outline-none ${
-                  formErrors.name ? 'border-[#E11D48] bg-[#FFE4E6]' : ''
+                  formErrors.name ? 'border-[#FF4D8D]' : ''
                 }`}
               />
               {formErrors.name && (
-                <p id="mobile-inquiry-name-error" role="alert" className="text-xs font-mono font-bold text-[#E11D48]">
+                <p id="mobile-inquiry-name-error" role="alert" className="rounded-lg bg-[#FF4D8D] border-2 border-[#09090B] px-2.5 py-1 text-xs font-mono font-bold text-[#09090B]">
                   {formErrors.name}
                 </p>
               )}
@@ -115,11 +128,11 @@ export function MobileBookingSheet({
                 aria-describedby={formErrors.email ? 'mobile-inquiry-email-error' : undefined}
                 placeholder="you@studio.com"
                 className={`brutal-input w-full h-11 rounded-xl px-3.5 text-base sm:text-sm focus:outline-none ${
-                  formErrors.email ? 'border-[#E11D48] bg-[#FFE4E6]' : ''
+                  formErrors.email ? 'border-[#FF4D8D]' : ''
                 }`}
               />
               {formErrors.email && (
-                <p id="mobile-inquiry-email-error" role="alert" className="text-xs font-mono font-bold text-[#E11D48]">
+                <p id="mobile-inquiry-email-error" role="alert" className="rounded-lg bg-[#FF4D8D] border-2 border-[#09090B] px-2.5 py-1 text-xs font-mono font-bold text-[#09090B]">
                   {formErrors.email}
                 </p>
               )}
@@ -145,7 +158,7 @@ export function MobileBookingSheet({
                       whileTap={{scale: 0.96}}
                       transition={LIQUID_SPRING_SNAPPY}
                       onClick={() => onScopeChange(scope)}
-                      className={`inline-flex items-center gap-1.5 min-h-[44px] px-3.5 py-2 rounded-xl text-xs font-semibold cursor-pointer focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#7C3AED] ${
+                      className={`inline-flex items-center gap-1.5 min-h-[44px] rounded-xl px-4 py-2 text-xs font-mono font-bold cursor-pointer focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#7C3AED] ${
                         selected ? 'brutal-cta' : 'brutal-button'
                       }`}
                     >
@@ -160,7 +173,7 @@ export function MobileBookingSheet({
                             transition={CUBIC_MICRO}
                             className="inline-flex"
                           >
-                            <Check className="w-3 h-3" />
+                            <Check className="w-3 h-3" strokeWidth={2.5} />
                           </motion.span>
                         )}
                       </AnimatePresence>
@@ -184,11 +197,11 @@ export function MobileBookingSheet({
                 aria-describedby={formErrors.notes ? 'mobile-inquiry-notes-error' : undefined}
                 placeholder="Shoot dates, deliverables, or visual references..."
                 className={`brutal-input w-full rounded-xl px-3.5 py-2.5 text-base sm:text-sm focus:outline-none ${
-                  formErrors.notes ? 'border-[#E11D48] bg-[#FFE4E6]' : ''
+                  formErrors.notes ? 'border-[#FF4D8D]' : ''
                 }`}
               />
               {formErrors.notes && (
-                <p id="mobile-inquiry-notes-error" role="alert" className="text-xs font-mono font-bold text-[#E11D48]">
+                <p id="mobile-inquiry-notes-error" role="alert" className="rounded-lg bg-[#FF4D8D] border-2 border-[#09090B] px-2.5 py-1 text-xs font-mono font-bold text-[#09090B]">
                   {formErrors.notes}
                 </p>
               )}
@@ -199,7 +212,7 @@ export function MobileBookingSheet({
               disabled={isSubmitting}
               whileTap={{scale: 0.975}}
               transition={LIQUID_SPRING_SNAPPY}
-              className="brutal-cta w-full h-12 rounded-xl text-sm font-mono font-bold uppercase tracking-wide cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+              className="brutal-cta w-full h-12 rounded-xl text-xs font-mono font-bold uppercase tracking-wider cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
             >
               {isSubmitting ? 'Sending Brief...' : 'Send Project Brief'}
             </motion.button>

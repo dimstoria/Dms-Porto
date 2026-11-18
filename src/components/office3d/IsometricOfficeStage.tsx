@@ -1284,6 +1284,10 @@ export function IsometricOfficeStage({
       const sx = ((_proj.x + 1) / 2) * el.clientWidth;
       const sy = ((1 - _proj.y) / 2) * el.clientHeight;
       node.style.transform = `translate3d(${sx.toFixed(1)}px, ${sy.toFixed(1)}px, 0)`;
+      const flip = sy < 145 ? 'down' : 'up';
+      if (node.dataset.flipY !== flip) {
+        node.dataset.flipY = flip;
+      }
     };
 
     const updateFrame = (tSec: number, dtSec: number) => {

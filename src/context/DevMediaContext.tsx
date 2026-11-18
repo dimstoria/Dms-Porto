@@ -201,6 +201,24 @@ export function DevMediaProvider({children}: {children: ReactNode}) {
         });
         blobUrlsRef.current = urlLookup;
         setBlobUrls(map);
+        setOverrides((prev) => {
+          let changed = false;
+          const nextSlots = {...prev.slots};
+          for (const [k, v] of Object.entries(nextSlots)) {
+            if (v.sourceType === 'blob' && !urlLookup[k]) {
+              delete nextSlots[k];
+              changed = true;
+            }
+          }
+          const nextVideos = {...prev.filmVideos};
+          for (const [k, v] of Object.entries(nextVideos)) {
+            if (v.mode === 'video-blob' && !urlLookup[`film-video:${k}`]) {
+              delete nextVideos[k];
+              changed = true;
+            }
+          }
+          return changed ? {...prev, slots: nextSlots, filmVideos: nextVideos} : prev;
+        });
       })
       .catch(() => {
         // IndexedDB might be unavailable in restricted contexts; URL overrides still work

@@ -59,7 +59,7 @@ export function EditorialCursor() {
         scale: isVisible ? 1 : 0.72,
       }}
       transition={LIQUID_SPRING_SNAPPY}
-      className="pointer-events-none fixed top-0 left-0 z-50 -translate-x-1/2 -translate-y-1/2 hidden md:flex items-center rounded-xl bg-[#FFE600] border-[2.5px] border-[#09090B] shadow-[3px_3px_0_#09090B] text-[#09090B] px-3.5 py-1.5 text-[11px] font-mono font-bold tracking-tight whitespace-nowrap"
+      className="pointer-events-none fixed top-0 left-0 z-[60] -translate-x-1/2 -translate-y-1/2 hidden md:flex items-center rounded-full bg-[#FFE600] border-[2.5px] border-[#09090B] shadow-[4px_4px_0_#09090B] text-[#09090B] px-3.5 py-1.5 text-[11px] font-mono font-bold tracking-tight whitespace-nowrap"
     >
       <span>{label}</span>
     </motion.div>

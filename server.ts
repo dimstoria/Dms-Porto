@@ -1,5 +1,10 @@
 import 'dotenv/config';
 import express, {type NextFunction, type Request, type Response} from 'express';
+import {
+  GoogleGenAI,
+  ThinkingLevel,
+  type GenerateContentResponse,
+} from '@google/genai';
 import fs from 'node:fs';
 import path from 'node:path';
 import {fileURLToPath} from 'node:url';
@@ -221,6 +226,157 @@ async function startServer(): Promise<void> {
     const next = inquiries.filter((item) => item.id !== id);
     writeJsonFile(INQUIRIES_FILE, next);
     res.json({ok: true});
+  });
+
+  const STUDIO_CHAT_SYSTEM_INSTRUCTION = [
+    'Kamu adalah asisten AI studio untuk Dimstoria ("dms porto"), portofolio milik Dimas (Director of Photography, Lead Video Editor, & Finishing Colorist berbasis di Jakarta dan melayani proyek remote worldwide).',
+    'Jawab pertanyaan pengunjung dengan ramah, langsung ke inti, ringkas, dan jelas dalam bahasa yang sama dengan pengguna (Indonesia atau Inggris). Hindari basa-basi panjang.',
+    'Fakta penting studio Dimstoria:',
+    '- Layanan utama: (01) Direction & Cinematography (commercials, music videos, brand monographs, 4K/8K RAW), (02) Narrative & Rhythm Editing (offline & online di Premiere Pro / DaVinci Resolve, multi-ratio cutdowns), (03) Color Grading & Sound Finish (ACEScct color pipeline, Kodak 2383 emulation, LUT craft, sound/Foley finish).',
+    '- Kamera & pipeline: ARRI Alexa Mini LF, ARRI Alexa 35, RED V-Raptor 8K, Sony Venice 2, Sony FX6, DaVinci Resolve Studio (ACEScct).',
+    '- Karya pilihan: Morning Geometry at Solis Pavilion (Kengo Architectural Press, Commercial, 01:32, 2.39:1), Zero Noise: Salt Flat Dynamics (Nordic Mobility Lab, Commercial, 01:15, 60fps), Monolith Sessions: Live in White (Nadia Tan & Verve Records, Music Video, 03:42, 4:3), Kiln & Patience (Sora Craft Collective, Documentary, 04:18), The Studio Behind the Lens (Dimstoria House Study, 01:10), dan Showreel 2026.',
+    '- Turnaround & cara kerja: offline cut pertama umumnya siap dalam ~48 jam setelah wrap untuk proyek komersial standar; menerima syuting langsung di Jakarta/Asia Tenggara serta remote editing & color grading global.',
+    '- Kontak resmi: dimstoria2@gmail.com atau melalui form Project Brief di bagian bawah halaman.',
+    'Bantu pengunjung berdiskusi tentang konsep video, ide storyboard, tips sinematografi/editing/color grading, atau menyusun draf Project Brief yang siap dikirim.',
+  ].join('\n');
+
+  let cachedAiClient: {key: string; client: GoogleGenAI} | null = null;
+  const getGeminiClient = (apiKey: string): GoogleGenAI => {
+    if (cachedAiClient && cachedAiClient.key === apiKey) {
+      return cachedAiClient.client;
+    }
+    const client = new GoogleGenAI({
+      apiKey,
+      httpOptions: {
+        headers: {
+          'User-Agent': 'aistudio-build',
+        },
+      },
+    });
+    cachedAiClient = {key: apiKey, client};
+    return client;
+  };
+
+  app.post('/api/gemini/chat', async (req: Request, res: Response) => {
+    const apiKey = process.env.GEMINI_API_KEY?.trim();
+    if (!apiKey) {
+      res.status(503).json({
+        ok: false,
+        error:
+          'GEMINI_API_KEY belum terpasang di server. Tambahkan GEMINI_API_KEY di panel Settings > Secrets.',
+      });
+      return;
+    }
+
+    const body = (req.body || {}) as {
+      message?: unknown;
+      history?: Array<{role?: unknown; text?: unknown}>;
+    };
+
+    const userMessage = typeof body.message === 'string' ? body.message.trim() : '';
+    if (!userMessage) {
+      res.status(400).json({ok: false, error: 'Pesan tidak boleh kosong.'});
+      return;
+    }
+
+    if (userMessage.length > 4000) {
+      res.status(400).json({ok: false, error: 'Pesan maksimal 4000 karakter.'});
+      return;
+    }
+
+    const sanitizedHistory = Array.isArray(body.history)
+      ? body.history
+          .slice(-16)
+          .filter(
+            (item): item is {role: 'user' | 'model'; text: string} =>
+              Boolean(item) &&
+              (item.role === 'user' || item.role === 'model') &&
+              typeof item.text === 'string' &&
+              item.text.trim().length > 0,
+          )
+          .map((item) => ({
+            role: item.role,
+            parts: [{text: item.text.trim().slice(0, 4000)}],
+          }))
+      : [];
+
+    const ai = getGeminiClient(apiKey);
+    const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
+
+    const openChatStreamWithRetry = async () => {
+      let lastError: unknown;
+      for (let attempt = 0; attempt < 2; attempt++) {
+        try {
+          const chat = ai.chats.create({
+            model: 'gemini-3.1-flash-lite',
+            history: sanitizedHistory,
+            config: {
+              systemInstruction: STUDIO_CHAT_SYSTEM_INSTRUCTION,
+              thinkingConfig: {thinkingLevel: ThinkingLevel.MINIMAL},
+            },
+          });
+          return await chat.sendMessageStream({message: userMessage});
+        } catch (err) {
+          lastError = err;
+          const msg = err instanceof Error ? err.message : String(err);
+          const isTransient = /500|503|UNAVAILABLE|DEADLINE_EXCEEDED|fetch failed/i.test(msg);
+          if (!isTransient || attempt === 1) throw err;
+          await sleep(450 * (attempt + 1));
+        }
+      }
+      throw lastError;
+    };
+
+    try {
+      const stream = await openChatStreamWithRetry();
+
+      res.setHeader('Content-Type', 'text/event-stream; charset=utf-8');
+      res.setHeader('Cache-Control', 'no-cache, no-transform');
+      res.setHeader('Connection', 'keep-alive');
+      res.flushHeaders?.();
+
+      let closed = false;
+      req.on('close', () => {
+        closed = true;
+      });
+
+      for await (const chunk of stream) {
+        if (closed) break;
+        const c = chunk as GenerateContentResponse;
+        if (c.text) {
+          res.write(`data: ${JSON.stringify({text: c.text})}\n\n`);
+        }
+      }
+
+      if (!closed) {
+        res.write(`data: ${JSON.stringify({done: true})}\n\n`);
+        res.end();
+      }
+    } catch (err) {
+      const rawMessage = err instanceof Error ? err.message : 'Gagal memproses respons Gemini.';
+      let friendlyMessage = rawMessage;
+      let statusCode = 500;
+
+      if (/API_KEY_INVALID|PERMISSION_DENIED|403|401/i.test(rawMessage)) {
+        statusCode = 403;
+        friendlyMessage =
+          'API key Gemini tidak valid atau belum memiliki akses. Periksa GEMINI_API_KEY di panel Settings > Secrets.';
+      } else if (/RESOURCE_EXHAUSTED|429/i.test(rawMessage)) {
+        statusCode = 429;
+        friendlyMessage =
+          'Kuota permintaan Gemini sementara penuh. Silakan tunggu beberapa detik lalu coba lagi.';
+      } else if (/NOT_FOUND|404/i.test(rawMessage)) {
+        statusCode = 404;
+        friendlyMessage = 'Model Gemini tidak ditemukan atau tidak didukung.';
+      }
+
+      if (!res.headersSent) {
+        res.status(statusCode).json({ok: false, error: friendlyMessage});
+      } else {
+        res.write(`data: ${JSON.stringify({error: friendlyMessage})}\n\n`);
+        res.end();
+      }
+    }
   });
 
   const isProd = process.env.NODE_ENV === 'production';

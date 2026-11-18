@@ -96,7 +96,6 @@ interface AgentHoverTooltipProps {
   agent: TheAgentSpec;
   liveState: AgentLiveState;
   statusText: string;
-  isHologram: boolean;
   align?: 'start' | 'center' | 'end';
 }
 
@@ -104,7 +103,6 @@ function AgentHoverTooltip({
   agent,
   liveState,
   statusText,
-  isHologram,
   align = 'center',
 }: AgentHoverTooltipProps) {
   const isActive = liveState === 'Active';
@@ -123,14 +121,10 @@ function AgentHoverTooltip({
       animate={{opacity: 1, y: 0, scale: 1}}
       exit={{opacity: 0, y: 2, scale: 0.97}}
       transition={{duration: MOTION_DURATIONS.micro, ease: CUBIC_EASE}}
-      className={`pointer-events-none ${edgeShiftClass} w-[236px] sm:w-[258px] rounded-xl border-[2.5px] px-3 py-2.5 text-left ${
-        isHologram
-          ? 'border-[#38BDF8] bg-[#09090B] text-white shadow-[4px_4px_0_#38BDF8]'
-          : 'border-[#09090B] bg-[#FFFDF5] text-[#09090B] shadow-[4px_4px_0_#09090B]'
-      }`}
+      className={`pointer-events-none ${edgeShiftClass} brutal-card-elevated w-[236px] sm:w-[258px] rounded-2xl bg-white px-3.5 py-2.5 text-left`}
     >
       <div className="flex items-center justify-between gap-2">
-        <span className="inline-flex items-center gap-1.5 font-display font-extrabold text-xs truncate">
+        <span className="inline-flex items-center gap-1.5 font-display font-bold text-xs text-[#09090B] truncate">
           <AgentCharacterIcon
             agentId={agent.id}
             color={agent.colors.armorMid}
@@ -140,35 +134,23 @@ function AgentHoverTooltip({
           <span className="truncate">{agent.name}</span>
         </span>
         <span
-          className={`px-1.5 py-0.5 rounded border border-[#09090B] font-mono text-[9px] font-bold uppercase tracking-wide shrink-0 ${
+          className={`px-2 py-0.5 rounded-lg font-mono font-bold text-[9px] uppercase tracking-wide shrink-0 border-2 border-[#09090B] ${
             isActive
-              ? isHologram
-                ? 'bg-[#38BDF8] text-[#09090B]'
-                : 'bg-[#B8FF3B] text-[#09090B]'
-              : 'bg-[#FFE600] text-[#09090B]'
+              ? 'bg-[#B8FF3B] text-[#09090B]'
+              : 'bg-[#F5F0E1] text-[#3F3F46]'
           }`}
         >
           {liveState}
         </span>
       </div>
 
-      <p
-        className={`mt-1 text-[11px] font-sans font-semibold leading-snug ${
-          isHologram ? 'text-[#BAE6FD]' : 'text-[#3F3F46]'
-        }`}
-      >
+      <p className="mt-1 text-[11px] font-sans font-medium text-[#3F3F46] leading-snug">
         Lantai {agent.floor} · {agent.roleTitle}
       </p>
 
-      <div
-        className={`mt-1.5 pt-1.5 border-t-2 flex items-center justify-between gap-2 text-[11px] leading-snug ${
-          isHologram
-            ? 'border-[#38BDF8]/40 text-white'
-            : 'border-[#09090B] text-[#09090B]'
-        }`}
-      >
-        <span className="shrink-0 font-mono font-bold text-[10px] uppercase">Status</span>
-        <span className="truncate font-sans font-semibold">{statusText}</span>
+      <div className="mt-1.5 pt-1.5 border-t-2 border-[#09090B] flex items-center justify-between gap-2 text-[11px] leading-snug text-[#09090B]">
+        <span className="shrink-0 font-mono font-bold text-[10px] text-[#7C3AED] uppercase">Status</span>
+        <span className="truncate font-sans font-medium">{statusText}</span>
       </div>
     </motion.div>
   );
@@ -376,18 +358,18 @@ export function TheAgentTab() {
     <section
       ref={stageRootRef}
       aria-label="The Agent"
-      className="relative min-h-[calc(100svh-4.5rem)] w-full px-4 sm:px-8 pt-6 pb-12 flex flex-col justify-between bg-[#FFFDF5] bg-brutal-grid text-[#09090B]"
+      className="relative min-h-[calc(100svh-4.5rem)] w-full px-4 sm:px-8 pt-6 pb-16 flex flex-col justify-between text-[#09090B]"
     >
       <div className="max-w-6xl w-full mx-auto flex flex-col gap-4 sm:gap-5">
-        {/* Section Header Stamp */}
-        <div data-gsap="agent-header" className="flex items-center gap-4">
-          <span className="inline-flex items-center px-3 py-1 rounded-lg bg-[#FF4D8D] border-2 border-[#09090B] shadow-[3px_3px_0_#09090B] text-xs font-mono font-bold text-[#09090B] tracking-wide shrink-0">
-            05. Live 3D Studio
+        {/* Neo-Brutalist Section Header */}
+        <div data-gsap="agent-header" className="flex items-center gap-3 pt-2">
+          <span className="inline-flex items-center px-3 py-1 rounded-full bg-[#B8FF3B] border-2 border-[#09090B] shadow-[3px_3px_0_#09090B] text-xs font-mono font-bold uppercase tracking-wider text-[#09090B] shrink-0">
+            05. Live 3D Studio · Multi-Agent Crew
           </span>
           <div className="h-[2.5px] flex-1 bg-[#09090B]" />
         </div>
 
-        {/* Subheader & Playful Neo-Brutalist Controls */}
+        {/* Subheader & Tactile Controls */}
         <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4 border-b-[2.5px] border-[#09090B] pb-4">
           <div className="space-y-1.5">
             <h1
@@ -398,9 +380,9 @@ export function TheAgentTab() {
             </h1>
             <p
               data-gsap="agent-header"
-              className="text-xs sm:text-sm font-sans font-medium text-[#27272A]"
+              className="text-xs sm:text-sm font-sans font-medium text-[#3F3F46]"
             >
-              <span className="inline-flex items-center px-2 py-0.5 rounded-md bg-[#FFE600] border-2 border-[#09090B] font-mono text-[11px] font-bold text-[#09090B] tabular-nums mr-1.5">
+              <span className="inline-block px-2 py-0.5 rounded-md bg-[#FFE600] border-2 border-[#09090B] font-mono font-bold text-[#09090B] tabular-nums mr-2">
                 {activeCount}/{THE_AGENTS.length} Active · {idleCount} Idle
               </span>
               {missionActivity
@@ -415,21 +397,21 @@ export function TheAgentTab() {
               type="button"
               data-gsap="agent-control"
               onClick={() => triggerGroupAction('sync-wave')}
-              className="brutal-cta inline-flex items-center gap-1.5 min-h-[44px] px-4 rounded-xl text-xs font-mono font-bold cursor-pointer whitespace-nowrap shrink-0 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#7C3AED]"
+              className="brutal-cta inline-flex items-center gap-1.5 min-h-[44px] sm:min-h-[38px] rounded-xl px-4 text-xs font-mono font-bold cursor-pointer whitespace-nowrap shrink-0"
             >
-              <Waves className="w-3.5 h-3.5" aria-hidden="true" />
+              <Waves className="w-3.5 h-3.5" strokeWidth={2.25} aria-hidden="true" />
               <span>Sync Pulse</span>
             </button>
 
-            {/* Unified Crew State Toggle & Group Wave Animation */}
+            {/* Toggle Crew */}
             <button
               type="button"
               data-gsap="agent-control"
               onClick={() => triggerGroupAction('toggle-all')}
               title="Alihkan status Active/Idle seluruh 11 kru & picu animasi gelombang"
-              className="brutal-button inline-flex items-center gap-1.5 min-h-[44px] px-4 rounded-xl text-xs font-mono font-bold cursor-pointer whitespace-nowrap shrink-0 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#7C3AED]"
+              className="brutal-button inline-flex items-center gap-1.5 min-h-[44px] sm:min-h-[38px] rounded-xl bg-white px-4 text-xs font-mono font-bold cursor-pointer whitespace-nowrap shrink-0"
             >
-              <RefreshCw className="w-3.5 h-3.5 text-[#7C3AED]" aria-hidden="true" />
+              <RefreshCw className="w-3.5 h-3.5 text-[#7C3AED]" strokeWidth={2.25} aria-hidden="true" />
               <span>Toggle Crew</span>
             </button>
 
@@ -456,18 +438,18 @@ export function TheAgentTab() {
                 })
               }
               title="Kirim kru lantai 1 & 2 ke Mission Board untuk memproses tugas"
-              className="brutal-cta-pink inline-flex items-center gap-1.5 min-h-[44px] px-4 rounded-xl text-xs font-mono font-bold cursor-pointer whitespace-nowrap shrink-0 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#09090B]"
+              className="brutal-cta-pink inline-flex items-center gap-1.5 min-h-[44px] sm:min-h-[38px] rounded-xl px-4 text-xs font-mono font-bold cursor-pointer whitespace-nowrap shrink-0"
             >
-              <ClipboardList className="w-3.5 h-3.5" aria-hidden="true" />
+              <ClipboardList className="w-3.5 h-3.5" strokeWidth={2.25} aria-hidden="true" />
               <span>Proses Misi</span>
             </button>
 
-            {/* Office Mode Switcher: Hologram <-> Pecel Lele only */}
+            {/* Office Mode Switcher */}
             <div
               data-gsap="agent-control"
               role="group"
               aria-label="Mode kantor 3D"
-              className="brutal-card bg-white inline-flex items-center gap-1 p-1 rounded-xl"
+              className="brutal-card inline-flex items-center gap-1 p-1 rounded-xl bg-white"
             >
               {GAYA_OPTIONS.map((opt) => {
                 const active = gaya === opt.id;
@@ -478,12 +460,10 @@ export function TheAgentTab() {
                     title={opt.ket}
                     aria-pressed={active}
                     onClick={() => setGaya(opt.id)}
-                    className={`inline-flex items-center min-h-[36px] px-3 rounded-lg text-xs font-mono font-bold transition-colors cursor-pointer whitespace-nowrap shrink-0 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#7C3AED] ${
+                    className={`inline-flex items-center min-h-[36px] sm:min-h-[30px] px-3 rounded-lg text-xs font-mono font-bold transition-colors cursor-pointer whitespace-nowrap shrink-0 ${
                       active
-                        ? isHologram
-                          ? 'bg-[#38BDF8] text-[#09090B] border-2 border-[#09090B] shadow-[2px_2px_0_#09090B]'
-                          : 'bg-[#FFE600] text-[#09090B] border-2 border-[#09090B] shadow-[2px_2px_0_#09090B]'
-                        : 'text-[#3F3F46] hover:text-[#09090B] border-2 border-transparent'
+                        ? 'bg-[#7C3AED] text-white border-2 border-[#09090B]'
+                        : 'text-[#09090B] hover:bg-[#FEF9C3]'
                     }`}
                   >
                     {opt.nama}
@@ -499,16 +479,16 @@ export function TheAgentTab() {
               onClick={toggleMuted}
               aria-pressed={isMuted}
               aria-label={isMuted ? 'Nyalakan suara agen' : 'Bisukan suara agen'}
-              className="brutal-button inline-flex items-center gap-1.5 min-h-[44px] px-4 rounded-xl text-xs font-mono font-bold cursor-pointer whitespace-nowrap shrink-0 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#7C3AED]"
+              className="brutal-button inline-flex items-center gap-1.5 min-h-[44px] sm:min-h-[38px] rounded-xl bg-white px-4 text-xs font-mono font-bold cursor-pointer whitespace-nowrap shrink-0"
             >
               {isMuted ? (
                 <>
-                  <VolumeX className="w-3.5 h-3.5 text-[#52525B]" aria-hidden="true" />
+                  <VolumeX className="w-3.5 h-3.5 text-[#52525B]" strokeWidth={2} aria-hidden="true" />
                   <span>Muted</span>
                 </>
               ) : (
                 <>
-                  <Volume2 className="w-3.5 h-3.5 text-[#7C3AED]" aria-hidden="true" />
+                  <Volume2 className="w-3.5 h-3.5 text-[#7C3AED]" strokeWidth={2} aria-hidden="true" />
                   <span>Sound On</span>
                 </>
               )}
@@ -520,10 +500,8 @@ export function TheAgentTab() {
         {!webglUnavailable ? (
           <div
             data-gsap="agent-stage"
-            className={`brutal-film-frame relative w-full h-[460px] sm:h-[540px] lg:h-[600px] rounded-3xl overflow-hidden transition-colors duration-[240ms] ${
-              isHologram
-                ? 'bg-[#020712]'
-                : 'bg-gradient-to-b from-[#131830] to-[#231932]'
+            className={`brutal-card-elevated relative w-full h-[460px] sm:h-[540px] lg:h-[600px] rounded-3xl overflow-hidden transition-colors duration-[240ms] ${
+              isHologram ? 'bg-[#09090B]' : 'bg-[#FFFDF5]'
             }`}
           >
             <IsometricOfficeStage
@@ -556,12 +534,10 @@ export function TheAgentTab() {
                   type="button"
                   onClick={selectBoard}
                   aria-pressed={boardSelected}
-                  className={`pointer-events-auto -translate-x-1/2 -translate-y-full inline-flex items-center min-h-[32px] px-2.5 py-1 rounded-lg border-2 border-[#09090B] shadow-[3px_3px_0_#09090B] text-[11px] font-mono font-bold whitespace-nowrap transition-transform cursor-pointer focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#FFE600] ${
+                  className={`pointer-events-auto -translate-x-1/2 -translate-y-full inline-flex items-center min-h-[32px] px-3 py-1 rounded-xl text-[11px] font-mono font-bold whitespace-nowrap cursor-pointer ${
                     boardSelected
-                      ? 'bg-[#FFE600] text-[#09090B]'
-                      : isHologram
-                        ? 'bg-[#38BDF8] text-[#09090B] hover:bg-[#BAE6FD]'
-                        : 'bg-[#FFFDF5] text-[#09090B] hover:bg-[#FFE600]'
+                      ? 'brutal-cta'
+                      : 'brutal-button bg-white text-[#09090B]'
                   }`}
                 >
                   Mission Board
@@ -600,41 +576,38 @@ export function TheAgentTab() {
                       if (el) anchorsMapRef.current.set(agent.id, el);
                       else anchorsMapRef.current.delete(agent.id);
                     }}
-                    className="absolute top-0 left-0 will-change-transform"
+                    className="group/anchor absolute top-0 left-0 will-change-transform"
                     style={{zIndex: isHovered ? 35 : isSelected ? 25 : 15}}
                   >
-                    <div className="-translate-x-1/2 -translate-y-full flex flex-col items-center gap-1.5">
-                      <AnimatePresence mode="wait">
-                        {isHovered ? (
-                          <AgentHoverTooltip
-                            key={`tooltip-${agent.id}`}
-                            agent={agent}
-                            liveState={telemetry.state}
-                            statusText={telemetry.statusText}
-                            isHologram={isHologram}
-                            align={tooltipAlign}
-                          />
-                        ) : showSpotlightBubble ? (
-                          <motion.p
-                            key={`spotlight-${agent.id}`}
-                            initial={{opacity: 0, y: 4, scale: 0.96}}
-                            animate={{opacity: 1, y: 0, scale: 1}}
-                            exit={{opacity: 0, y: 2, scale: 0.96}}
-                            transition={{duration: MOTION_DURATIONS.micro, ease: CUBIC_EASE}}
-                            className={`hidden sm:block max-w-[220px] px-2.5 py-1.5 rounded-xl border-2 text-[11px] font-sans font-semibold leading-snug text-center ${
-                              isHologram
-                                ? 'border-[#38BDF8] bg-[#09090B] text-white shadow-[3px_3px_0_#38BDF8]'
-                                : 'border-[#09090B] bg-[#FFFDF5] text-[#09090B] shadow-[3px_3px_0_#09090B]'
-                            }`}
-                          >
-                            {agent.id === 'antislop' &&
-                            isSelected &&
-                            antiSlopAuditIndex >= 0
-                              ? ANTI_SLOP_AUDITS[antiSlopAuditIndex]
-                              : agent.summaryBubble}
-                          </motion.p>
-                        ) : null}
-                      </AnimatePresence>
+                    <div className="relative -translate-x-1/2 -translate-y-full flex flex-col items-center">
+                      <div className="pointer-events-none absolute left-1/2 -translate-x-1/2 bottom-full mb-1.5 group-data-[flip-y=down]/anchor:bottom-auto group-data-[flip-y=down]/anchor:top-full group-data-[flip-y=down]/anchor:mb-0 group-data-[flip-y=down]/anchor:mt-1.5 z-20">
+                        <AnimatePresence mode="wait">
+                          {isHovered ? (
+                            <AgentHoverTooltip
+                              key={`tooltip-${agent.id}`}
+                              agent={agent}
+                              liveState={telemetry.state}
+                              statusText={telemetry.statusText}
+                              align={tooltipAlign}
+                            />
+                          ) : showSpotlightBubble ? (
+                            <motion.p
+                              key={`spotlight-${agent.id}`}
+                              initial={{opacity: 0, y: 4, scale: 0.96}}
+                              animate={{opacity: 1, y: 0, scale: 1}}
+                              exit={{opacity: 0, y: 2, scale: 0.96}}
+                              transition={{duration: MOTION_DURATIONS.micro, ease: CUBIC_EASE}}
+                              className="hidden sm:block max-w-[220px] px-3 py-1.5 rounded-xl bg-[#FEF9C3] border-2 border-[#09090B] shadow-[3px_3px_0_#09090B] text-[11px] font-sans font-bold leading-snug text-[#09090B] text-center"
+                            >
+                              {agent.id === 'antislop' &&
+                              isSelected &&
+                              antiSlopAuditIndex >= 0
+                                ? ANTI_SLOP_AUDITS[antiSlopAuditIndex]
+                                : agent.summaryBubble}
+                            </motion.p>
+                          ) : null}
+                        </AnimatePresence>
+                      </div>
 
                       <button
                         ref={(el) => {
@@ -654,18 +627,12 @@ export function TheAgentTab() {
                         aria-label={`${agent.name} (${agent.colorTag}, Lantai ${agent.floor})`}
                         aria-describedby={isHovered ? `agent-tooltip-${agent.id}` : undefined}
                         aria-pressed={isSelected}
-                        className={`pointer-events-auto inline-flex items-center gap-1.5 min-h-[34px] px-2.5 py-1 rounded-xl border-2 border-[#09090B] shadow-[3px_3px_0_#09090B] text-xs whitespace-nowrap transition-transform duration-150 cursor-pointer focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#FFE600] ${
+                        className={`pointer-events-auto inline-flex items-center gap-1.5 min-h-[32px] px-3 py-1 rounded-xl text-xs whitespace-nowrap transition-transform duration-150 cursor-pointer ${
                           isHovered || isSelected ? 'scale-105' : 'scale-100'
                         } ${
-                          isHologram
-                            ? `font-mono ${
-                                isSelected
-                                  ? 'bg-[#38BDF8] text-[#09090B]'
-                                  : 'bg-[#09090B] text-[#BAE6FD] border-[#38BDF8]'
-                              }`
-                            : isSelected
-                              ? 'bg-[#FFE600] text-[#09090B]'
-                              : 'bg-white text-[#09090B] hover:bg-[#FEF9C3]'
+                          isSelected
+                            ? 'brutal-cta'
+                            : 'brutal-button bg-white text-[#09090B]'
                         }`}
                       >
                         <AgentCharacterIcon
@@ -677,9 +644,7 @@ export function TheAgentTab() {
                         <span className="font-mono font-bold">{agent.shortName}</span>
                         <span
                           className={`hidden xl:inline text-[10px] font-sans font-medium ${
-                            isHologram && !isSelected
-                              ? 'text-[#38BDF8]'
-                              : 'text-[#3F3F46]'
+                            isSelected ? 'text-[#09090B]' : 'text-[#52525B]'
                           }`}
                         >
                           {telemetry.statusText}
@@ -700,9 +665,9 @@ export function TheAgentTab() {
             ].map((tier) => (
               <div
                 key={tier.title}
-                className="brutal-card-cream rounded-2xl p-4"
+                className="brutal-card-cream rounded-3xl p-4 sm:p-5"
               >
-                <p className="inline-flex items-center px-2.5 py-0.5 rounded-md bg-[#FFE600] border-2 border-[#09090B] text-xs font-mono font-bold text-[#09090B] mb-3">
+                <p className="inline-block px-2.5 py-0.5 rounded-lg bg-[#FFE600] border-2 border-[#09090B] text-xs font-mono font-bold text-[#09090B] mb-3">
                   {tier.title}
                 </p>
                 <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-x-2 gap-y-4 place-items-center items-end">
@@ -726,21 +691,26 @@ export function TheAgentTab() {
                         ? 'hover'
                         : 'idle';
                     const isSelected = selectedAgentId === agent.id;
-                    const subtleTilt = idx % 2 === 0 ? -1.4 : 1.4;
 
                     return (
                       <div key={agent.id} className="relative flex flex-col items-center">
                         <AnimatePresence>
                           {isHovered && (
-                            <div className="absolute -top-2 -translate-y-full z-30 pointer-events-none">
+                            <motion.div
+                              key={`fallback-tooltip-${agent.id}`}
+                              initial={{opacity: 0, y: 4}}
+                              animate={{opacity: 1, y: 0}}
+                              exit={{opacity: 0, y: 2}}
+                              transition={{duration: MOTION_DURATIONS.micro, ease: CUBIC_EASE}}
+                              className="absolute -top-2 -translate-y-full z-30 pointer-events-none"
+                            >
                               <AgentHoverTooltip
                                 agent={agent}
                                 liveState={telemetry.state}
                                 statusText={telemetry.statusText}
-                                isHologram={isHologram}
                                 align={idx === 0 ? 'start' : idx === tier.list.length - 1 ? 'end' : 'center'}
                               />
-                            </div>
+                            </motion.div>
                           )}
                         </AnimatePresence>
 
@@ -748,8 +718,8 @@ export function TheAgentTab() {
                           type="button"
                           initial={{opacity: 0, y: 12}}
                           animate={{opacity: 1, y: 0}}
-                          whileHover={{scale: 1.055, y: -4, rotate: subtleTilt}}
-                          whileTap={{scale: 0.96, y: 1, rotate: 0}}
+                          whileHover={{scale: 1.05, y: -4}}
+                          whileTap={{scale: 0.96, y: 1}}
                           transition={{
                             opacity: {duration: MOTION_DURATIONS.macro, delay: idx * 0.045, ease: CUBIC_EASE},
                             default: HOVER_SPRING,
@@ -766,7 +736,7 @@ export function TheAgentTab() {
                           aria-label={`${agent.name} (${agent.colorTag}, Lantai ${agent.floor})`}
                           aria-describedby={isHovered ? `agent-tooltip-${agent.id}` : undefined}
                           aria-pressed={isSelected}
-                          className="relative flex flex-col items-center justify-end gap-1 p-1 rounded-2xl cursor-pointer focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[#7C3AED]"
+                          className="relative flex flex-col items-center justify-end gap-1.5 p-1.5 rounded-2xl cursor-pointer focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[#7C3AED]"
                         >
                           <AgentStoryboardSprite
                             agent={agent}
@@ -776,7 +746,13 @@ export function TheAgentTab() {
                             isSelected={isSelected}
                             darkSurface={false}
                           />
-                          <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-white border border-[#09090B] text-[11px] font-mono font-bold text-[#09090B]">
+                          <span
+                            className={`inline-flex items-center gap-1 px-2.5 py-0.5 rounded-lg border-2 border-[#09090B] text-[11px] font-mono font-bold ${
+                              isSelected
+                                ? 'bg-[#FFE600] text-[#09090B] shadow-[2px_2px_0_#09090B]'
+                                : 'bg-white text-[#09090B]'
+                            }`}
+                          >
                             <AgentCharacterIcon
                               agentId={agent.id}
                               color={agent.colors.armorMid}
@@ -795,7 +771,7 @@ export function TheAgentTab() {
           </div>
         )}
 
-        {/* Fixed-Height Editorial Detail Slot */}
+        {/* Fixed-Height Detail Slot */}
         <div data-gsap="agent-bottom-slot" className="min-h-[96px] flex items-center justify-center">
           <AnimatePresence mode="wait">
             {activeAgent && (
@@ -807,7 +783,7 @@ export function TheAgentTab() {
                 animate={{opacity: 1, y: 0, scale: 1}}
                 exit={{opacity: 0, y: -4, scale: 0.98}}
                 transition={CUBIC_TACTILE}
-                className="brutal-card-elevated w-full max-w-3xl rounded-2xl px-5 py-4 flex items-start justify-between gap-4 bg-white"
+                className="brutal-card-elevated w-full max-w-3xl rounded-2xl bg-white px-5 py-4 flex items-start justify-between gap-4"
               >
                 <div className="space-y-1.5 min-w-0">
                   <div className="flex items-center gap-2.5 flex-wrap">
@@ -815,31 +791,31 @@ export function TheAgentTab() {
                       agentId={activeAgent.id}
                       color={activeAgent.colors.armorMid}
                       accent={activeAgent.colors.chestRim}
-                      size={26}
+                      size={24}
                     />
                     <h2 className="font-display text-xl sm:text-2xl font-extrabold tracking-tight text-[#09090B]">
                       {activeAgent.name}
                     </h2>
-                    <span className="px-2 py-0.5 rounded-md text-[11px] font-mono font-bold border-2 border-[#09090B] bg-[#7C3AED] text-white">
+                    <span className="px-2 py-0.5 rounded-md bg-[#FFE600] border-2 border-[#09090B] text-xs font-mono font-bold text-[#09090B]">
                       Lantai {activeAgent.floor}
                     </span>
-                    <span className="text-xs font-mono font-bold text-[#27272A]">
-                      {activeAgent.id === 'antislop' && antiSlopAuditIndex >= 0
+                    <span className="text-xs font-mono font-bold text-[#52525B]">
+                      · {activeAgent.id === 'antislop' && antiSlopAuditIndex >= 0
                         ? 'Portfolio Audit'
                         : activeAgent.roleTitle}{' '}
                       ({activeAgent.colorTag})
                     </span>
                     <span
-                      className={`px-2 py-0.5 rounded-md border border-[#09090B] text-[10px] font-mono font-bold uppercase ${
+                      className={`px-2 py-0.5 rounded-lg text-[10px] font-mono font-bold uppercase border-2 border-[#09090B] ${
                         agentStates[activeAgent.id] === 'active'
                           ? 'bg-[#B8FF3B] text-[#09090B]'
-                          : 'bg-[#FFE600] text-[#09090B]'
+                          : 'bg-[#F5F0E1] text-[#3F3F46]'
                       }`}
                     >
                       {agentStates[activeAgent.id] === 'active' ? 'Active' : 'Idle'}
                     </span>
                   </div>
-                  <p className="text-xs sm:text-sm font-sans leading-relaxed text-[#27272A]">
+                  <p className="text-xs sm:text-sm font-sans font-medium leading-relaxed text-[#3F3F46]">
                     {activeDescription}
                   </p>
                 </div>
@@ -849,13 +825,13 @@ export function TheAgentTab() {
                     type="button"
                     onClick={() => toggleAgentState(activeAgent.id)}
                     aria-pressed={agentStates[activeAgent.id] === 'active'}
-                    className={`inline-flex items-center gap-1.5 min-h-[44px] px-3.5 rounded-xl text-xs font-mono font-bold cursor-pointer whitespace-nowrap focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#7C3AED] ${
+                    className={`inline-flex items-center gap-1.5 min-h-[44px] sm:min-h-[38px] rounded-xl px-4 text-xs font-mono font-bold cursor-pointer whitespace-nowrap ${
                       agentStates[activeAgent.id] === 'active'
                         ? 'brutal-cta'
-                        : 'brutal-button'
+                        : 'brutal-button bg-white'
                     }`}
                   >
-                    <Power className="w-3.5 h-3.5" aria-hidden="true" />
+                    <Power className="w-3.5 h-3.5" strokeWidth={2.25} aria-hidden="true" />
                     <span>
                       {agentStates[activeAgent.id] === 'active' ? 'Set Idle' : 'Set Active'}
                     </span>
@@ -865,9 +841,9 @@ export function TheAgentTab() {
                     type="button"
                     onClick={clearSelection}
                     aria-label="Tutup detail agen"
-                    className="brutal-button inline-flex items-center justify-center min-w-[44px] min-h-[44px] rounded-xl cursor-pointer shrink-0 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#7C3AED]"
+                    className="brutal-button inline-flex items-center justify-center min-w-[44px] min-h-[44px] sm:min-w-[38px] sm:min-h-[38px] rounded-xl bg-[#FF4D8D] text-[#09090B] cursor-pointer shrink-0"
                   >
-                    <X className="w-4 h-4" />
+                    <X className="w-4 h-4" strokeWidth={2.25} />
                   </button>
                 </div>
               </motion.div>
@@ -882,7 +858,7 @@ export function TheAgentTab() {
                 animate={{opacity: 1, y: 0, scale: 1}}
                 exit={{opacity: 0, y: -4, scale: 0.98}}
                 transition={CUBIC_TACTILE}
-                className="brutal-card-elevated w-full max-w-3xl rounded-2xl px-5 py-4 flex items-start justify-between gap-4 bg-[#FEF9C3]"
+                className="brutal-card-elevated w-full max-w-3xl rounded-2xl bg-[#FEF9C3] px-5 py-4 flex items-start justify-between gap-4"
               >
                 <div className="space-y-1.5 min-w-0">
                   <div className="flex items-baseline gap-2.5 flex-wrap">
@@ -893,7 +869,7 @@ export function TheAgentTab() {
                       {STUDIO_ROOMS.map((r) => r.label).join(' · ')}
                     </span>
                   </div>
-                  <p className="text-xs sm:text-sm font-sans leading-relaxed text-[#27272A]">
+                  <p className="text-xs sm:text-sm font-sans font-medium leading-relaxed text-[#3F3F46]">
                     Kantor 2 lantai menyatukan 6 agen inti di Lantai 1 dan 5 agen spesialis di Tingkat 2 Mezzanine (Design DNA, Motion, Genjutsu, Three.js, GSAP). Klik karakter mana saja untuk meninjau peran lengkapnya.
                   </p>
                 </div>
@@ -902,9 +878,9 @@ export function TheAgentTab() {
                   type="button"
                   onClick={clearSelection}
                   aria-label="Tutup Mission Board"
-                  className="brutal-button inline-flex items-center justify-center min-w-[44px] min-h-[44px] rounded-xl cursor-pointer shrink-0 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#7C3AED]"
+                  className="brutal-button inline-flex items-center justify-center min-w-[44px] min-h-[44px] sm:min-w-[38px] sm:min-h-[38px] rounded-xl bg-[#FF4D8D] text-[#09090B] cursor-pointer shrink-0"
                 >
-                  <X className="w-4 h-4" />
+                  <X className="w-4 h-4" strokeWidth={2.25} />
                 </button>
               </motion.div>
             )}
@@ -916,7 +892,7 @@ export function TheAgentTab() {
                 animate={{opacity: 1}}
                 exit={{opacity: 0}}
                 transition={CUBIC_MICRO}
-                className="inline-flex items-center px-3.5 py-1.5 rounded-xl bg-white border-2 border-[#09090B] shadow-[3px_3px_0_#09090B] text-xs font-mono font-bold text-[#09090B] text-center"
+                className="brutal-card inline-flex items-center px-4 py-2 rounded-2xl bg-white text-xs font-mono font-bold text-[#09090B] text-center"
               >
                 Klik salah satu dari 11 karakter di Lantai 1 atau Tingkat 2 untuk melihat peran. Klik ulang Anti-Slop untuk audit antarmuka.
               </motion.p>

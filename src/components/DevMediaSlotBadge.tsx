@@ -44,13 +44,16 @@ export function DevMediaSlotBadge({
       onClick={handleClick}
       onPointerDown={(e) => e.stopPropagation()}
       aria-label={`Dev Mode: ${label}`}
-      className={`absolute z-30 ${posClasses[position]} inline-flex items-center gap-1.5 rounded-lg border-2 border-[#09090B] shadow-[3px_3px_0_#09090B] transition-transform duration-[150ms] ease-[cubic-bezier(0.22,1,0.36,1)] hover:-translate-x-[1px] hover:-translate-y-[1px] active:translate-x-[1px] active:translate-y-[1px] cursor-pointer focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#09090B] ${
+      className={`absolute z-30 ${posClasses[position]} inline-flex items-center gap-1.5 rounded-xl border-2 border-[#09090B] shadow-[3px_3px_0_#09090B] transition-transform duration-150 hover:-translate-x-0.5 hover:-translate-y-0.5 cursor-pointer focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#7C3AED] ${
         isModified
           ? 'bg-[#B8FF3B] text-[#09090B]'
           : 'bg-[#FFE600] text-[#09090B]'
       } ${compact ? 'px-2.5 py-1 text-[10px]' : 'px-3 py-1.5 text-[11px]'} font-mono font-bold`}
     >
-      <ImagePlus className={compact ? 'w-3 h-3 shrink-0' : 'w-3.5 h-3.5 shrink-0'} />
+      <ImagePlus
+        className={`${compact ? 'w-3 h-3' : 'w-3.5 h-3.5'} text-[#09090B] shrink-0`}
+        strokeWidth={2}
+      />
       <span>{isModified ? `${label} · Edited` : label}</span>
     </button>
   );
