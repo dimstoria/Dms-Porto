@@ -1,0 +1,413 @@
+{
+  "meta": {
+    "name": "dms porto + The Agent",
+    "description": "Tactile cinematographer portfolio and interactive 3D studio workspace calibrated around warm alabaster stone, darkroom cinema charcoal, 2+1 editorial typography, and restrained cobalt telemetry.",
+    "source_references": [
+      "src/index.css",
+      "src/App.tsx",
+      "src/components/TheAgentTab.tsx",
+      "src/components/ColorGradingCompare.tsx",
+      "src/components/TimelineBreakdown.tsx",
+      "src/components/AccessModeGate.tsx",
+      "src/components/office3d/IsometricOfficeStage.tsx",
+      "src/components/office3d/styleKits.ts"
+    ],
+    "created_at": "2026-11-16T01:20:00Z"
+  },
+  "design_system": {
+    "color": {
+      "palette_type": "monochromatic",
+      "primary": {
+        "hex": "#18181B",
+        "role": "Primary ink, editorial headlines, high-contrast action fills, and active frame borders"
+      },
+      "secondary": {
+        "hex": "#ECECE8",
+        "role": "Warm alabaster studio canvas ground across navigation, hero, and portfolio ledger"
+      },
+      "accent": {
+        "hex": "#2563EB",
+        "role": "Restrained cobalt telemetry accent for timeline playhead, cut markers, active studio focus rings, and score clips"
+      },
+      "neutral": {
+        "scale": [
+          "#FFFFFF",
+          "#F7F6F2",
+          "#F4F4F1",
+          "#ECECE8",
+          "#E3E1DB",
+          "#DCDAD3",
+          "#B8B6AE",
+          "#555551",
+          "#3F3F3C",
+          "#18181B",
+          "#111113",
+          "#0B0D13"
+        ],
+        "usage": "Lightest #FFFFFF to #E3E1DB form elevated cards, warm forms, and tab tracks on #ECECE8; #555551 and #3F3F3C provide >= 6.3:1 AA contrast for secondary copy; #18181B..#0B0D13 anchor primary ink, Log-to-Final darkroom cinema band, and Night/3D studio views."
+      },
+      "semantic": {
+        "success": "#059669",
+        "warning": "#D97706",
+        "error": "#DC2626",
+        "info": "#2563EB"
+      },
+      "surface": {
+        "background": "#ECECE8",
+        "card": "#FFFFFF",
+        "elevated": "#F7F6F2"
+      },
+      "contrast_strategy": "dark-on-light dominant on warm alabaster (#ECECE8) paired with inverted high-contrast darkroom band (#111113) and themed 3D studio surfaces (Gallery #ECECE8, Night #0B0D13, Pecel Lele Dusk #171828, Hologram #03060D)"
+    },
+    "typography": {
+      "type_scale": {
+        "display": {
+          "size": "clamp(2.25rem, 5vw, 3.95rem)",
+          "weight": "700",
+          "line_height": "1.04",
+          "tracking": "-0.035em"
+        },
+        "heading_1": {
+          "size": "clamp(1.85rem, 3.6vw, 2.75rem)",
+          "weight": "700",
+          "line_height": "1.1",
+          "tracking": "-0.03em"
+        },
+        "heading_2": {
+          "size": "clamp(1.65rem, 2.9vw, 2.35rem)",
+          "weight": "700",
+          "line_height": "1.1",
+          "tracking": "-0.03em"
+        },
+        "heading_3": {
+          "size": "1.25rem",
+          "weight": "600",
+          "line_height": "1.25",
+          "tracking": "-0.02em"
+        },
+        "body": {
+          "size": "1rem",
+          "weight": "400",
+          "line_height": "1.65",
+          "tracking": "0em"
+        },
+        "body_small": {
+          "size": "0.875rem",
+          "weight": "400",
+          "line_height": "1.6",
+          "tracking": "0em"
+        },
+        "caption": {
+          "size": "0.75rem",
+          "weight": "500",
+          "line_height": "1.4",
+          "tracking": "0em"
+        },
+        "overline": {
+          "size": "0.75rem",
+          "weight": "500",
+          "line_height": "1.35",
+          "tracking": "0.025em"
+        }
+      },
+      "font_families": {
+        "heading": "Plus Jakarta Sans, ui-sans-serif, system-ui, sans-serif",
+        "body": "Plus Jakarta Sans, ui-sans-serif, system-ui, sans-serif",
+        "mono": "JetBrains Mono, ui-monospace, SFMono-Regular, monospace"
+      },
+      "font_style_notes": "Crisp geometric sans (Plus Jakarta Sans) for UI and portfolio headlines, paired with JetBrains Mono (tabular-nums) for timecodes, frame rates, and section indices (01..05), plus Cormorant Garamond reserved as the single editorial serif accent inside The Agent studio."
+    },
+    "spacing": {
+      "base_unit": "4px",
+      "scale": [
+        "4px",
+        "8px",
+        "12px",
+        "16px",
+        "24px",
+        "32px",
+        "48px",
+        "64px",
+        "80px",
+        "96px"
+      ],
+      "content_density": "comfortable",
+      "section_rhythm": "Alternating macro structural bands (alabaster rounded hero -> warm stone works -> darkroom #111113 color science -> warm stone cut timeline & practice ledger -> crisp white rounded contact band) separated by 01..05 hairline section indices."
+    },
+    "layout": {
+      "grid_system": "12-column responsive editorial grid for desktop bento showcase and NLE inspector, collapsing to crisp single-column tap lists and bottom-sheet flows on mobile.",
+      "max_content_width": "1280px",
+      "columns": "12",
+      "gutter": "24px",
+      "breakpoints": {
+        "sm": "640px",
+        "md": "768px",
+        "lg": "1024px",
+        "xl": "1280px"
+      },
+      "alignment_tendency": "mixed"
+    },
+    "shape": {
+      "border_radius": {
+        "small": "8px",
+        "medium": "16px",
+        "large": "24px",
+        "pill": "9999px"
+      },
+      "border_usage": "subtle 1px",
+      "divider_style": "1px hairline dividers (#DCDAD3 light / #27272A darkroom / #3B334D street dusk) pairing monospace numeric prefixes with full-width horizontal rules."
+    },
+    "elevation": {
+      "shadow_style": "soft diffused",
+      "levels": {
+        "low": "0 1px 2px rgba(24, 24, 27, 0.05)",
+        "medium": "0 20px 50px -28px rgba(24, 24, 27, 0.22)",
+        "high": "0 32px 70px -30px rgba(24, 24, 27, 0.28)"
+      },
+      "depth_cues": "overlapping layers"
+    },
+    "iconography": {
+      "style": "Minimalist architectural 1.5px-2px outline icons paired with crisp filled playheads.",
+      "stroke_weight": "1.75px",
+      "size_scale": "14px, 16px, 18px, 28px",
+      "preferred_set": "lucide-react"
+    },
+    "motion": {
+      "easing": "cubic-bezier(0.22, 1, 0.36, 1)",
+      "duration_scale": {
+        "micro": "160ms",
+        "normal": "320ms",
+        "macro": "560ms"
+      },
+      "entrance_pattern": "Staggered upward glide (14px-22px) synchronized between GSAP timelines, Lenis scroll ticker, and Framer Motion spring/cubic primitives.",
+      "exit_pattern": "Clean fast fade with subtle 4px-8px elevation shift.",
+      "philosophy": "cinematic"
+    },
+    "components": {
+      "button_style": "Solid dark ink (#18181B) and bordered ivory pill buttons (rounded-full) for primary actions; subtly rounded 10px-12px buttons for technical NLE controls and spatial agent triggers.",
+      "input_style": "44px minimum height, 12px radius, crisp 1px #D5D3CC border with #18181B or cobalt #2563EB focus ring.",
+      "card_style": "Clean 1px bordered pure white or #F7F6F2 cards with zero competing border accents and clean internal typographic hierarchy.",
+      "navigation_pattern": "Sticky alabaster header with slash-separated text links on desktop and fixed 4-tab thumb-zone bar on mobile.",
+      "modal_style": "Responsive full-media film lightbox dialog on desktop and pull-up booking sheet on mobile.",
+      "list_style": "Clean hairline-separated ledger rows for capabilities and mobile filmography tap list.",
+      "component_notes": "All controls maintain single-line non-wrapping labels and >= 44px touch targets on mobile."
+    }
+  },
+  "design_style": {
+    "aesthetic": {
+      "mood": [
+        "composed",
+        "tactile",
+        "cinematographic",
+        "exacting",
+        "editorial"
+      ],
+      "visual_metaphor": "A physical director's cut-sheet and tabletop architectural studio stage where paper grain, Log film stock, and calibrated 3D desk craft coexist.",
+      "era_influence": "Modern Swiss editorial grid meets contemporary cinema NLE suite.",
+      "genre": "Director of Photography & Post-Production Studio Portfolio + 3D Agent Workspace",
+      "personality_traits": [
+        "measured",
+        "restrained",
+        "crafted",
+        "observant"
+      ],
+      "adjectives": [
+        "warm-alabaster",
+        "tactile",
+        "monochromatic",
+        "architectural"
+      ]
+    },
+    "visual_language": {
+      "complexity": "moderate",
+      "ornamentation": "subtle accents",
+      "whitespace_usage": "Generous breathing room framing asymmetric studio practice columns and above/below the 3D studio stage with zero viewport occlusion.",
+      "visual_weight_distribution": "Top-heavy editorial clarity in hero transitioning into balanced bento frames, heavy high-contrast #111113 darkroom color stage, and airy white closing brief.",
+      "focal_strategy": "progressive reveal",
+      "contrast_level": "High contrast primary ink on warm stone (15.1:1) and crisp light typography on cinema charcoal.",
+      "texture_usage": "Micro SVG fractal film grain (3.2% multiply) plus procedural wood, plaster, terpal, and wet-asphalt PBR textures in the 3D stage."
+    },
+    "composition": {
+      "hierarchy_method": "typographic hierarchy",
+      "balance_type": "asymmetric",
+      "flow_direction": "Vertical multi-band scroll progression across chapters 01..05 paired with horizontal scrub sliders and isometric 3D spatial depth.",
+      "grouping_strategy": "Bordered segmented tracks for filters and hairline rules dividing technical metadata rows.",
+      "negative_space_role": "Structural resting frame keeping cinema stills, NLE tracks, and 3D character pins uncluttered."
+    },
+    "imagery": {
+      "photo_treatment": "Natural 16:9 / 4:3 widescreen framing with hover viewfinder corner reticles and optional ungraded Log CSS curve simulation.",
+      "illustration_style": "Low-poly architectural miniature props, halftone-free painted street banners, and fallback pixel sprite storyboards.",
+      "graphic_elements": "Optical viewfinder corner ticks, NLE playhead diamond markers, and spatial 3D character anchors.",
+      "pattern_usage": "Subtle SVG fractal grain and wet-asphalt specular roughness variation without noisy background patterns.",
+      "image_shape": "16:9 and 4:3 frames inside 16px-24px rounded containers."
+    },
+    "interaction_feel": {
+      "feedback_style": "Tactile detent taps, subtle WebAudio procedural clicks/whooshes synced to mute state, and crisp magnetic cursor pull on desktop.",
+      "hover_behavior": "Gentle 3px elevation lift, optical corner reticles, contextual label cursor, and spatial agent tooltip cards.",
+      "transition_personality": "smooth glide",
+      "loading_style": "Choreographed alabaster-to-dark-curtain AccessModeGate reveal with instant skip/replay support.",
+      "microinteraction_density": "Targeted feedback on interactive cinema cards, scrub handles, NLE clips, and 3D studio controls without visual noise."
+    },
+    "brand_voice_in_ui": {
+      "tone": "Direct, studio-practical, Bilingual technical clarity (English portfolio copy paired with Bahasa Indonesia agent studio controls).",
+      "formality": "Balanced professional studio directness.",
+      "cta_style": "direct imperative",
+      "empty_state_approach": "Helpful contextual status prompts guiding click or arrow-key exploration.",
+      "error_tone": "Clear inline validation hints without jarring alerts."
+    }
+  },
+  "visual_effects": {
+    "overview": {
+      "effect_intensity": "moderate",
+      "performance_tier": "heavy",
+      "fallback_strategy": "reduce to CSS",
+      "primary_technology": "WebGL/Three.js"
+    },
+    "background_effects": {
+      "type": "noise-field",
+      "description": "Desktop-only static SVG feTurbulence film-grain overlay at 3.2% multiply opacity plus smooth Lenis scroll integration.",
+      "technology": "CSS + inline SVG filter",
+      "params": {
+        "color_palette": [
+          "#ECECE8",
+          "#18181B"
+        ],
+        "speed": "static",
+        "density": "140x140 tile",
+        "opacity": 0.032,
+        "blend_mode": "multiply"
+      }
+    },
+    "particle_systems": {
+      "enabled": true,
+      "type": "connected-nodes",
+      "description": "Hologram mode streams 150 additive cyan data particles smoothly from workstation screens along parabolic arcs to the Mission Board.",
+      "technology": "Three.js Points + AdditiveBlending",
+      "params": {
+        "count": 150,
+        "shape": "point-sprite",
+        "size_range": "0.09 world units",
+        "movement_pattern": "parabolic arc flow",
+        "color_behavior": "#A5F3FC additive glow",
+        "interaction": "none",
+        "spawn_area": "agent desk screens to mission board"
+      }
+    },
+    "3d_elements": {
+      "enabled": true,
+      "type": "scene-bg",
+      "description": "Isometric 3D agent studio supporting Asli, Voxel, Hologram, Diorama, and Pecel Lele street-stall PBR style kits with autonomous Mission Board dispatching and GSAP camera focus.",
+      "technology": "Three.js WebGLRenderer + PMREMGenerator + RoomEnvironment",
+      "params": {
+        "renderer": "WebGLRenderer ACESFilmicToneMapping + PCFSoftShadowMap",
+        "lighting": "Hemisphere sky/ground bounce + shadow-casting sun key + Pecel Lele nocturnal warm stall lamps",
+        "camera": "PerspectiveCamera 34deg FOV with GSAP spherical orbit proxy and non-fighting pointer drag",
+        "materials": "Calibrated MeshPhysicalMaterial (clearcoat glass/ceramic, velvet sheen, brushed anisotropic metal) and MeshStandardMaterial",
+        "geometry": "Modular architectural furniture, articulated 6-agent rigs, street awning, wooden dining stall",
+        "post_processing": [],
+        "interaction_model": "Raycasting click/hover + keyboard arrow focus + drag orbit + double-click reset"
+      }
+    },
+    "shader_effects": {
+      "enabled": false,
+      "type": "none",
+      "description": "Standard Three.js PBR shaders and ACES Filmic tone mapping without custom GLSL post-processing passes.",
+      "technology": "Three.js built-in PBR shaders",
+      "params": {
+        "uniforms": "none",
+        "vertex_manipulation": "none",
+        "fragment_output": "ACES Filmic SDR",
+        "noise_type": "none",
+        "distortion": "none"
+      }
+    },
+    "scroll_effects": {
+      "parallax": {
+        "enabled": true,
+        "layers": "2",
+        "depth_range": "scale 1->1.055 and y 0->-14px on desktop showreel",
+        "speed_curve": "Lenis smooth wheel scrubbed via GSAP ScrollTrigger"
+      },
+      "scroll_triggered_animations": {
+        "enabled": true,
+        "trigger_points": "top 84%-86% across sections 01..04 and contact",
+        "animation_type": "fade-up",
+        "scrub_behavior": "triggered once on enter; scrub on hero showreel media"
+      },
+      "scroll_morphing": {
+        "enabled": false,
+        "description": "Disabled in favor of disciplined section continuity."
+      }
+    },
+    "text_effects": {
+      "type": "split-letter-animate",
+      "description": "Hero headline animates word-by-word via GSAP staggered reveal immediately upon gate dismissal.",
+      "technology": "GSAP Timeline",
+      "params": {
+        "split_strategy": "by-word",
+        "animation_per_unit": "opacity 0->1, y 20->0",
+        "stagger": "0.032s",
+        "effect_style": "editorial power3.out reveal"
+      }
+    },
+    "cursor_effects": {
+      "enabled": true,
+      "type": "magnetic-buttons",
+      "description": "Desktop-only spring-damped editorial cursor pill over [data-cursor] cards plus subtle magnetic pull on hero and contact CTA buttons.",
+      "params": {
+        "shape": "pill tooltip",
+        "size": "auto-fit text badge",
+        "blend_mode": "normal",
+        "trail": "spring damped",
+        "interaction_zone": "desktop fine pointer cards & CTAs"
+      }
+    },
+    "image_effects": {
+      "type": "reveal-clip",
+      "description": "Interactive Log-to-Final clip-path comparison slider with CSS .grade-log-profile curve and scroll-velocity micro-scale on work cards.",
+      "technology": "CSS clip-path + CSS filter + Framer Motion useVelocity",
+      "params": {
+        "filter_pipeline": "saturate(0.28) contrast(0.72) brightness(1.1) sepia(0.06)",
+        "hover_transform": "scale(1.02..1.03)",
+        "reveal_animation": "0..100% horizontal pointer wipe",
+        "distortion_type": "none"
+      }
+    },
+    "glassmorphism_neumorphism": {
+      "enabled": false,
+      "style": "none",
+      "params": {
+        "blur_radius": "0px",
+        "transparency": "0",
+        "border_treatment": "1px solid architectural borders; zero blur over WebGL stage",
+        "shadow_type": "soft diffused",
+        "light_source_angle": "135deg"
+      }
+    },
+    "canvas_drawings": {
+      "enabled": true,
+      "type": "pattern-fill",
+      "description": "Procedural 2D CanvasTextures generating wood grain, plaster stipple, striped terpal, painted street banners, chalkboard headers, and wet-asphalt roughness puddles.",
+      "technology": "HTML5 Canvas 2D -> Three.js CanvasTexture",
+      "params": {
+        "draw_method": "seeded PRNG procedural canvas strokes",
+        "animation_loop": "static pre-baked textures",
+        "color_scheme": "warm timber, terracotta terpal, chalk slate, neutral asphalt",
+        "responsiveness": "maxAnisotropy GPU scaling",
+        "interaction": "none"
+      }
+    },
+    "svg_animations": {
+      "enabled": false,
+      "type": "none",
+      "description": "Static lucide-react outline icons and subtle CSS opacity scroll indicators without SMIL path morphing.",
+      "params": {
+        "animation_method": "none",
+        "path_morphing": "none",
+        "stroke_animation": "none",
+        "filter_effects": "feTurbulence grain texture only"
+      }
+    },
+    "composite_notes": "Heavy WebGL effects stay strictly isolated inside The Agent viewport with automatic 2D pixel sprite grid fallback when WebGL is unavailable, while CSS @media (prefers-reduced-motion: reduce), Framer MotionConfig, and GSAP matchMedia coordinate full motion reduction globally."
+  }
+}

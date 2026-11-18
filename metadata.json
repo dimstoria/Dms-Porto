@@ -1,0 +1,6 @@
+{
+  "name": "Dimstoria — dms porto",
+  "description": "Explore Dimstoria's commercial films, minimalist music videos, Log-to-final color grading breakdowns, and interactive NLE cutdowns.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
